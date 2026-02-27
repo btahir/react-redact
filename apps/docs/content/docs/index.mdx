@@ -1,0 +1,51 @@
+---
+title: Getting Started
+description: Install and use react-redact in your app.
+---
+
+# Getting Started
+
+**react-redact** visually hides PII in your UI with one keyboard shortcut. It's a UI convenience tool for demos and screenshares — not a security product. Data stays in the DOM; only the display is redacted.
+
+## Install
+
+```bash
+pnpm add react-redact
+```
+
+## Quick setup
+
+1. Wrap your app with `RedactProvider` and import the styles.
+2. Use the **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) shortcut to toggle redaction.
+3. Wrap known sensitive content in `<Redact>` or use `<RedactAuto>` to scan for PII.
+
+```tsx
+import { RedactProvider, Redact, useRedactMode } from 'react-redact';
+import 'react-redact/styles.css';
+
+function App() {
+  return (
+    <RedactProvider shortcut="mod+shift+x">
+      <Dashboard />
+    </RedactProvider>
+  );
+}
+
+function Dashboard() {
+  const { isRedacted, toggle } = useRedactMode();
+  return (
+    <>
+      <button onClick={toggle}>{isRedacted ? '🔒' : '🔓'} Demo mode</button>
+      <Redact>user@company.com</Redact>
+    </>
+  );
+}
+```
+
+## Next steps
+
+- [Redact component](/docs/components/redact) - manual redaction with blur, mask, or replace
+- [RedactAuto](/docs/components/redact-auto) - auto-detect and wrap PII in a subtree
+- [Provider](/docs/components/provider) - global config and keyboard shortcut
+- [Modes](/docs/modes) - blur, mask, replace
+- [Patterns](/docs/patterns) - built-in PII patterns and custom regex

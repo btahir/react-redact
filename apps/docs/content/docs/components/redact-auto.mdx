@@ -1,0 +1,32 @@
+---
+title: RedactAuto
+description: Automatically scan a subtree for PII and wrap matches.
+---
+
+# RedactAuto
+
+Scans its children for PII using built-in or custom patterns and wraps matches in `[data-redact]` spans. Uses a debounced MutationObserver to re-scan when content changes.
+
+## Usage
+
+```tsx
+import { RedactAuto } from 'react-redact';
+
+<RedactAuto patterns={['email', 'phone']}>
+  <UserProfile />
+</RedactAuto>
+
+<RedactAuto patterns={['ssn']} customPatterns={[/ACME-\d{6}/g]}>
+  <DocumentView />
+</RedactAuto>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | — | Subtree to scan |
+| `patterns` | `BuiltInPatternName[]` | all | `'email' \| 'phone' \| 'ssn' \| 'credit-card' \| 'ip'` |
+| `customPatterns` | `RegExp[]` | `[]` | Additional regex patterns (global) |
+
+Scanning and wrapping only run when the provider's `enabled` is `true`. The visual style (blur, mask, replace) comes from the provider's `mode`.

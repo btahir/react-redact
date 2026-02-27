@@ -1,0 +1,76 @@
+---
+title: Recipes
+description: Real-world usage patterns.
+---
+
+# Recipes
+
+## Next.js admin panel
+
+Wrap the layout that contains sensitive data and add a demo toggle in the header.
+
+```tsx
+// app/layout.tsx
+import { RedactProvider } from 'react-redact';
+import 'react-redact/styles.css';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <RedactProvider shortcut="mod+shift+x">
+          {children}
+        </RedactProvider>
+      </body>
+    </html>
+  );
+}
+
+// components/admin-header.tsx
+import { useRedactMode } from 'react-redact';
+
+export function AdminHeader() {
+  const { isRedacted, toggle } = useRedactMode();
+  return (
+    <header>
+      <button onClick={toggle} aria-pressed={isRedacted}>
+        {isRedacted ? 'Show real data' : 'Demo mode'}
+      </button>
+    </header>
+  );
+}
+```
+
+## SaaS dashboard demo mode
+
+Use URL param or env to start in redacted state (e.g. permanent demo env).
+
+```tsx
+const initialRedact =
+  typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('redact') === 'true'
+    : process.env.NEXT_PUBLIC_REDACT === 'true';
+
+<RedactProvider enabled={initialRedact} mode="replace">
+  <Dashboard />
+</RedactProvider>
+```
+
+## Auto-detect in a single section
+
+Use `<RedactAuto>` only where you need scanning; keep the rest of the page unchanged.
+
+```tsx
+<RedactProvider>
+  <Sidebar />
+  <main>
+    <RedactAuto patterns={['email', 'phone', 'credit-card']}>
+      <CustomerDetails />
+    </RedactAuto>
+  </main>
+</RedactProvider>
+```
+
+## Storybook
+
+Wrap your preview with `RedactProvider` and use the shortcut or a toolbar button wired to `useRedactMode().toggle` so you can capture redacted screenshots.

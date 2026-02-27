@@ -1,0 +1,30 @@
+---
+title: useRedactPatterns
+description: Read active pattern names and add custom patterns.
+---
+
+# useRedactPatterns
+
+Returns the provider's `autoDetect` pattern names and a helper to create custom pattern configs. Useful when building UI that reflects or extends the active patterns.
+
+## Usage
+
+```tsx
+import { useRedactPatterns } from 'react-redact';
+
+function PatternConfig() {
+  const { patternNames, patterns, addPattern } = useRedactPatterns();
+  const custom = addPattern(/ACME-\d{6}/g, 'acme-id');
+  // ...
+}
+```
+
+## Return value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `patternNames` | `BuiltInPatternName[]` | Names from provider `autoDetect` |
+| `patterns` | `PatternConfig[]` | Configs for those names |
+| `addPattern` | `(regex, name) => PatternConfig` | Create a custom pattern config |
+
+When the provider has `autoDetect={false}` or no provider, `patternNames` and `patterns` are empty.

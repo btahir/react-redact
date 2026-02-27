@@ -1,0 +1,4 @@
+{
+  "title": "Documentation",
+  "pages": ["index", "---Components---", "components/redact", "components/redact-auto", "components/provider", "---Hooks---", "hooks/use-redact-mode", "hooks/use-redact-patterns", "---Guides---", "modes", "patterns", "recipes"]
+}

@@ -1,0 +1,34 @@
+---
+title: useRedactMode
+description: Read and control redact state.
+---
+
+# useRedactMode
+
+Returns the current redact state and functions to enable, disable, or toggle. Must be used inside `RedactProvider`.
+
+## Usage
+
+```tsx
+import { useRedactMode } from 'react-redact';
+
+function AdminBar() {
+  const { isRedacted, enable, disable, toggle } = useRedactMode();
+  return (
+    <button onClick={toggle}>
+      {isRedacted ? '🔒' : '🔓'} Demo mode
+    </button>
+  );
+}
+```
+
+## Return value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `isRedacted` | `boolean` | Whether redaction is currently on |
+| `enable` | `() => void` | Turn redaction on |
+| `disable` | `() => void` | Turn redaction off |
+| `toggle` | `() => void` | Flip redaction state |
+
+Outside a provider, `isRedacted` is `false` and the functions are no-ops.

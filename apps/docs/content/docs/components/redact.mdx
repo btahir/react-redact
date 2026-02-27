@@ -1,0 +1,34 @@
+---
+title: Redact
+description: Manually wrap content to be redacted when demo mode is on.
+---
+
+# Redact
+
+Wrap any content to be visually redacted when redact mode is enabled.
+
+## Usage
+
+```tsx
+import { Redact } from 'react-redact';
+
+<Redact>user@company.com</Redact>
+<Redact mode="mask">4111 1111 1111 1111</Redact>
+<Redact mode="replace" replacement="Jane Smith">John Doe</Redact>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | — | Content to redact |
+| `mode` | `'blur' \| 'mask' \| 'replace'` | from context | How to display when redacted |
+| `replacement` | `string` | — | For `mode="replace"`: custom replacement text |
+
+## Modes
+
+- **blur** — `filter: blur(6px)`; original text remains in DOM.
+- **mask** — Bullets matching character length (`ch` units).
+- **replace** — Swap with `replacement` prop or deterministic fake data (when `children` is a string).
+
+When redact mode is off, children render as-is with no wrapper.

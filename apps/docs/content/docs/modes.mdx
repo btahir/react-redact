@@ -1,0 +1,37 @@
+---
+title: Modes
+description: Blur, mask, and replace redaction styles.
+---
+
+# Modes
+
+Redaction can be shown in three ways (and a fourth custom option for future use).
+
+## Blur (default)
+
+Uses `filter: blur(6px)` so the original text is still in the DOM but unreadable. GPU-accelerated and fast. Best for quick demos.
+
+Set via `<RedactProvider mode="blur">` or `<Redact mode="blur">`.
+
+## Mask
+
+Replaces characters with bullets (•) and keeps the same visual width using `ch` units. Copy-paste safe (no real text in the redacted span). Good for forms and tables.
+
+```tsx
+<Redact mode="mask">555-123-4567</Redact>
+```
+
+## Replace
+
+Swaps content with deterministic fake data (or a custom string via the `replacement` prop). Same input always produces the same fake output, so toggling doesn’t flicker.
+
+```tsx
+<Redact mode="replace">user@company.com</Redact>
+<Redact mode="replace" replacement="Jane Smith">John Doe</Redact>
+```
+
+Fake data is generated from a hash of the original value for emails, phones, SSNs, IPs, and names.
+
+## Custom
+
+Reserved for a user-provided render function in a future API.

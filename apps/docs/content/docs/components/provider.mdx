@@ -1,0 +1,38 @@
+---
+title: RedactProvider
+description: Context provider and global redact config.
+---
+
+# RedactProvider
+
+Wraps your app (or a subtree) to provide redact state and config. Listens for the keyboard shortcut and toggles `enabled`.
+
+## Usage
+
+```tsx
+import { RedactProvider } from 'react-redact';
+import 'react-redact/styles.css';
+
+<RedactProvider
+  mode="blur"
+  shortcut="mod+shift+x"
+  enabled={false}
+  autoDetect={['email', 'phone']}
+  customPatterns={[/ACME-\d{6}/g]}
+>
+  <App />
+</RedactProvider>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | — | App or subtree |
+| `mode` | `'blur' \| 'mask' \| 'replace'` | `'blur'` | Default redaction style |
+| `shortcut` | `string` | `'mod+shift+x'` | Keyboard shortcut; `mod` = ⌘/Ctrl |
+| `enabled` | `boolean` | `false` | Initial redact state |
+| `autoDetect` | `false \| BuiltInPatternName[]` | `false` | Pattern names for context (e.g. useRedactPatterns) |
+| `customPatterns` | `RegExp[]` | — | Extra patterns for context |
+
+When `enabled` changes, the provider toggles the `react-redact-blur` class on all `[data-redact]` elements so auto-injected spans stay in sync.

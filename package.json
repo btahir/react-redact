@@ -61,6 +61,7 @@
 		"test:coverage": "vitest run --coverage",
 		"check": "biome check .",
 		"check:fix": "biome check --fix .",
+		"docs": "pnpm --filter react-redact-docs dev",
 		"prepublishOnly": "pnpm run build",
 		"changeset": "changeset",
 		"version": "changeset version",

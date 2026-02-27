@@ -1,0 +1,37 @@
+---
+title: Patterns
+description: Built-in PII patterns and custom regex.
+---
+
+# Patterns
+
+Built-in pattern names: `email`, `phone`, `ssn`, `credit-card`, `ip`. Use them in `<RedactAuto patterns={[...]}>` or in the provider’s `autoDetect`.
+
+## Built-in
+
+| Name | Description |
+|------|-------------|
+| `email` | RFC-ish email (local@domain.tld) |
+| `phone` | US/intl formats: (555) 555-0123, +1-555-555-0123 |
+| `ssn` | XXX-XX-XXXX |
+| `credit-card` | 13–19 digits, Luhn-valid (reduces false positives) |
+| `ip` | IPv4 and IPv6 |
+
+## Custom patterns
+
+Pass `RegExp` with the global flag to `customPatterns` on the provider or to `<RedactAuto customPatterns={[/ACME-\d{6}/g]}>`.
+
+## Programmatic API
+
+```tsx
+import { patterns, getPatterns, createPattern, matchCreditCard } from 'react-redact';
+
+// Get configs for names
+const configs = getPatterns(['email', 'phone']);
+
+// Custom pattern
+const custom = createPattern(/ACME-\d{6}/g, 'acme-id');
+
+// Credit-card uses Luhn; matchCreditCard(text) returns only valid matches
+const matches = matchCreditCard('Card: 4111 1111 1111 1111');
+```

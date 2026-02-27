@@ -14,3 +14,9 @@
 	user-select: none;
 	-webkit-user-select: none;
 }
+
+/* Optional: use on large containers to skip off-screen redacted content (render performance) */
+.react-redact-section {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 100px;
+}

@@ -1,5 +1,5 @@
 import type { BuiltInPatternName } from "./patterns/index.js";
-import { getPatterns, matchCreditCard } from "./patterns/index.js";
+import { getPatterns, matchCreditCard, patterns } from "./patterns/index.js";
 import { getTextNodes } from "./utils/dom-walker.js";
 
 const DEBOUNCE_MS = 100;
@@ -44,6 +44,7 @@ function findMatches(
 			continue;
 		}
 		const config = getPatterns([name])[0];
+		if (!config) continue;
 		const r = new RegExp(config.regex.source, "g");
 		let m = r.exec(text);
 		while (m !== null) {
@@ -116,6 +117,7 @@ export function scanRoot(
 	createSpan: (text: string, hint?: string) => HTMLSpanElement,
 ): void {
 	const { patternNames, customPatterns = [] } = options;
+	const validNames = patternNames.filter((n) => n in patterns) as BuiltInPatternName[];
 	const pairs = getTextNodes(root);
 	for (const { node, text } of pairs) {
 		// Skip if already inside a redact span
@@ -126,7 +128,7 @@ export function scanRoot(
 		}
 		if (el?.hasAttribute?.("data-redact")) continue;
 
-		const matches = findMatches(text, patternNames, customPatterns);
+		const matches = findMatches(text, validNames, customPatterns);
 		const merged = mergeMatches(matches);
 		if (merged.length > 0) {
 			wrapMatchesInTextNode(node, merged, createSpan);
@@ -134,16 +136,25 @@ export function scanRoot(
 	}
 }
 
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+const debounceByRoot = new Map<
+	HTMLElement,
+	{
+		timer: ReturnType<typeof setTimeout>;
+		options: ScanOptions;
+		createSpan: (text: string, hint?: string) => HTMLSpanElement;
+	}
+>();
 
 export function scheduleScan(
 	root: HTMLElement,
 	options: ScanOptions,
 	createSpan: (text: string, hint?: string) => HTMLSpanElement,
 ): void {
-	if (debounceTimer) clearTimeout(debounceTimer);
-	debounceTimer = setTimeout(() => {
-		debounceTimer = null;
+	const existing = debounceByRoot.get(root);
+	if (existing) clearTimeout(existing.timer);
+	const timer = setTimeout(() => {
+		debounceByRoot.delete(root);
 		scanRoot(root, options, createSpan);
 	}, DEBOUNCE_MS);
+	debounceByRoot.set(root, { timer, options, createSpan });
 }

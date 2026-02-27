@@ -18,11 +18,17 @@ export function parseShortcut(shortcut: string): {
 	for (const p of parts) {
 		const s = p.trim();
 		if (s === "mod") {
-			// mod = meta on Mac, ctrl on Windows/Linux (we detect by user agent for SSR safety)
-			if (typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform)) {
-				meta = true;
-			} else {
+			// mod = meta on Mac, ctrl on Windows/Linux. Prefer userAgentData (modern), fallback to platform/userAgent.
+			if (typeof navigator === "undefined") {
 				ctrl = true;
+			} else {
+				const nav = navigator as Navigator & { userAgentData?: { platform: string } };
+				const isMac =
+					nav.userAgentData?.platform === "macOS" ||
+					/Mac|iPod|iPhone|iPad/.test(nav.platform ?? "") ||
+					/Mac|iPod|iPhone|iPad/.test(nav.userAgent ?? "");
+				if (isMac) meta = true;
+				else ctrl = true;
 			}
 		} else if (s === "ctrl") ctrl = true;
 		else if (s === "meta" || s === "cmd") meta = true;

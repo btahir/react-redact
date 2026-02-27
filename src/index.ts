@@ -15,3 +15,4 @@ export { RedactProvider } from "./redact-provider.js";
 export { useRedactMode } from "./use-redact-mode.js";
 export type { UseRedactPatternsReturn } from "./use-redact-patterns.js";
 export { useRedactPatterns } from "./use-redact-patterns.js";
+export { getInitialRedactEnabled } from "./utils/get-initial-redact-enabled.js";

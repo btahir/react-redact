@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import ReactMarkdown from "react-markdown";
+import { DemoToggle } from "@/components/demo/demo-toggle";
 
 const CONTENT_DIR = path.join(process.cwd(), "content/docs");
 
@@ -35,6 +36,8 @@ export default async function DocPage(props: PageProps) {
 	const raw = fs.readFileSync(fullPath, "utf-8");
 	const { data: frontmatter, content } = matter(raw);
 
+	const isGettingStarted = slug === "" || slug === "getting-started";
+
 	return (
 		<>
 			<h1>{frontmatter.title ?? "Docs"}</h1>
@@ -42,6 +45,12 @@ export default async function DocPage(props: PageProps) {
 				<p style={{ color: "#666", marginBottom: "1.5rem" }}>{frontmatter.description}</p>
 			)}
 			<ReactMarkdown>{content}</ReactMarkdown>
+			{isGettingStarted && (
+				<section style={{ marginTop: "2rem", padding: "1.5rem", border: "1px solid #eee", borderRadius: "8px" }}>
+					<h2 style={{ fontSize: "1.25rem", marginBottom: "0.5rem" }}>Live demo</h2>
+					<DemoToggle />
+				</section>
+			)}
 		</>
 	);
 }

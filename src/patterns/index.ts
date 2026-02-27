@@ -24,11 +24,15 @@ const builtIns: Record<BuiltInPatternName, PatternConfig> = {
 
 export const patterns = builtIns;
 
+const VALID_NAMES = new Set<BuiltInPatternName>(Object.keys(builtIns) as BuiltInPatternName[]);
+
 export function getPatterns(names: BuiltInPatternName[]): PatternConfig[] {
-	return names.map((n) => ({
-		...builtIns[n],
-		regex: new RegExp(builtIns[n].regex.source, "g"),
-	}));
+	return names
+		.filter((n): n is BuiltInPatternName => VALID_NAMES.has(n))
+		.map((n) => ({
+			...builtIns[n],
+			regex: new RegExp(builtIns[n].regex.source, "g"),
+		}));
 }
 
 export function createPattern(regex: RegExp, name: string): PatternConfig {

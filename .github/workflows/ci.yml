@@ -32,3 +32,6 @@ jobs:
 
       - name: Test
         run: pnpm test:run
+
+      - name: Build docs
+        run: pnpm --filter react-redact-docs build

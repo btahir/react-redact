@@ -43,15 +43,19 @@ export function AdminHeader() {
 
 ## SaaS dashboard demo mode
 
-Use URL param or env to start in redacted state (e.g. permanent demo env).
+Use URL param (`?redact=true`) or env to start in redacted state (e.g. permanent demo env). `getInitialRedactEnabled()` reads the URL; for env (e.g. `NEXT_PUBLIC_REDACT=true`) pass from your app so it works with SSR.
 
 ```tsx
-const initialRedact =
-  typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('redact') === 'true'
-    : process.env.NEXT_PUBLIC_REDACT === 'true';
+import { RedactProvider, getInitialRedactEnabled } from 'react-redact';
 
-<RedactProvider enabled={initialRedact} mode="replace">
+// URL only (client)
+<RedactProvider enabled={getInitialRedactEnabled()} mode="replace">
+  <Dashboard />
+</RedactProvider>
+
+// Next.js: URL or env (SSR-safe)
+const redactFromEnv = process.env.NEXT_PUBLIC_REDACT === 'true';
+<RedactProvider enabled={typeof window !== 'undefined' ? getInitialRedactEnabled() : redactFromEnv} mode="replace">
   <Dashboard />
 </RedactProvider>
 ```

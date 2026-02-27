@@ -1,4 +1,4 @@
-/* react-redact — blur + accessibility */
+/* react-redact — blur + mask + accessibility */
 [data-redact].react-redact-blur {
 	filter: blur(6px);
 	user-select: none;
@@ -8,4 +8,9 @@
 
 [data-redact][aria-hidden="true"] {
 	/* Screen readers skip redacted content */
+}
+
+[data-redact] {
+	user-select: none;
+	-webkit-user-select: none;
 }

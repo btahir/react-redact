@@ -54,7 +54,7 @@
 		"vitest": "^3.0.0"
 	},
 	"scripts": {
-		"build": "tsup",
+		"build": "tsup && node -e \"require('fs').mkdirSync('dist/styles',{recursive:true}); require('fs').copyFileSync('src/styles/redact.css','dist/styles/redact.css')\"",
 		"dev": "tsup --watch",
 		"test": "vitest",
 		"test:run": "vitest run",

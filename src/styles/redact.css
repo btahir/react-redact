@@ -1,0 +1,11 @@
+/* react-redact — blur + accessibility */
+[data-redact].react-redact-blur {
+	filter: blur(6px);
+	user-select: none;
+	-webkit-user-select: none;
+	transition: filter 0.2s ease;
+}
+
+[data-redact][aria-hidden="true"] {
+	/* Screen readers skip redacted content */
+}

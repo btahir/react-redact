@@ -8,6 +8,10 @@
 
 **Visual-only:** This is a UI convenience tool for demos and screenshares. It does not remove data from the DOM.
 
+| Before (PII visible) | After (⌘⇧X — redacted) |
+|----------------------|-------------------------|
+| ![Before](apps/docs/public/readme-demo-before.png) | ![After](apps/docs/public/readme-demo-after.png) |
+
 ## Features
 
 - **Toggle:** Keyboard shortcut (⌘⇧X / Ctrl+Shift+X), `useRedactMode()` hook, or URL param

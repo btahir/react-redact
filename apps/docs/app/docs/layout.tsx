@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 const nav = [
@@ -20,7 +21,8 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
 	return (
 		<div className="docs-layout">
 			<aside className="docs-sidebar">
-				<Link href="/" style={{ fontWeight: 600, marginBottom: "1rem", display: "block" }}>
+				<Link href="/" style={{ fontWeight: 600, marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+					<Image src="/logo.png" alt="" width={24} height={24} />
 					react-redact
 				</Link>
 				<nav>

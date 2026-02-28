@@ -22,13 +22,15 @@ import { Redact } from 'react-redact';
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `children` | `ReactNode` | — | Content to redact |
-| `mode` | `'blur' \| 'mask' \| 'replace'` | from context | How to display when redacted |
+| `mode` | `'blur' \| 'mask' \| 'replace' \| 'custom'` | from context | How to display when redacted |
 | `replacement` | `string` | — | For `mode="replace"`: custom replacement text |
+| `renderRedacted` | `(props: { children, text }) => ReactNode` | — | For `mode="custom"`: your render function. Overrides provider `customRender`. |
 
 ## Modes
 
 - **blur** — `filter: blur(6px)`; original text remains in DOM.
 - **mask** — Bullets matching character length (`ch` units).
 - **replace** — Swap with `replacement` prop or deterministic fake data (when `children` is a string).
+- **custom** — Use `renderRedacted` (or provider `customRender`). Your node should have `data-redact` and `aria-hidden`.
 
 When redact mode is off, children render as-is with no wrapper.

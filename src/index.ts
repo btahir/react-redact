@@ -1,4 +1,8 @@
-export type { RedactMode } from "./context.js";
+export type {
+	CustomRedactRender,
+	CustomRedactRenderProps,
+	RedactMode,
+} from "./context.js";
 export type { BuiltInPatternName, PatternConfig } from "./patterns/index.js";
 export {
 	createPattern,

@@ -1,45 +1,12 @@
+import { source } from "@/lib/source";
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
+import { baseOptions } from "@/lib/layout.shared";
 import type { ReactNode } from "react";
-import Image from "next/image";
-import Link from "next/link";
 
-const nav = [
-	{ label: "Getting Started", href: "/docs" },
-	{ section: "Components" },
-	{ label: "Redact", href: "/docs/components/redact" },
-	{ label: "RedactAuto", href: "/docs/components/redact-auto" },
-	{ label: "RedactProvider", href: "/docs/components/provider" },
-	{ section: "Hooks" },
-	{ label: "useRedactMode", href: "/docs/hooks/use-redact-mode" },
-	{ label: "useRedactPatterns", href: "/docs/hooks/use-redact-patterns" },
-	{ section: "Guides" },
-	{ label: "Modes", href: "/docs/modes" },
-	{ label: "Patterns", href: "/docs/patterns" },
-	{ label: "Recipes", href: "/docs/recipes" },
-];
-
-export default function DocsLayout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
 	return (
-		<div className="docs-layout">
-			<aside className="docs-sidebar">
-				<Link href="/" style={{ fontWeight: 600, marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-					<Image src="/logo.png" alt="" width={24} height={24} />
-					react-redact
-				</Link>
-				<nav>
-					{nav.map((item, i) =>
-						"section" in item ? (
-							<div key={i} className="section">
-								{item.section}
-							</div>
-						) : (
-							<Link key={i} href={item.href}>
-								{item.label}
-							</Link>
-						),
-					)}
-				</nav>
-			</aside>
-			<main className="docs-main">{children}</main>
-		</div>
+		<DocsLayout tree={source.getPageTree()} {...baseOptions()}>
+			{children}
+		</DocsLayout>
 	);
 }

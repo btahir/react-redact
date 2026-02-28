@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import type { RedactMode } from "./context.js";
+import type { CustomRedactRender, RedactMode } from "./context.js";
 import { RedactContext } from "./context.js";
 import { getBlurProps } from "./modes/blur.js";
 import { getMaskStyle, maskValue } from "./modes/mask.js";
@@ -9,6 +9,8 @@ export interface RedactProps {
 	children: React.ReactNode;
 	mode?: RedactMode;
 	replacement?: string;
+	/** When mode="custom", this render function is used. Overrides provider customRender. */
+	renderRedacted?: CustomRedactRender;
 }
 
 function textContent(node: React.ReactNode): string {
@@ -21,7 +23,7 @@ function textContent(node: React.ReactNode): string {
 /**
  * Wraps content to be visually redacted when redact mode is enabled.
  */
-export function Redact({ children, mode: propMode, replacement }: RedactProps) {
+export function Redact({ children, mode: propMode, replacement, renderRedacted }: RedactProps) {
 	const ctx = useContext(RedactContext);
 	const enabled = ctx?.enabled ?? false;
 	const effectiveMode = propMode ?? ctx?.mode ?? "blur";
@@ -60,7 +62,15 @@ export function Redact({ children, mode: propMode, replacement }: RedactProps) {
 		);
 	}
 
-	// custom or fallback: blur
+	// custom: use renderRedacted, then provider customRender, then blur
+	const customRenderer = renderRedacted ?? ctx?.customRender;
+	if (customRenderer) {
+		return (
+			<>
+				{customRenderer({ children, text })}
+			</>
+		);
+	}
 	const props = getBlurProps();
 	return (
 		<span data-redact aria-hidden className={props.className}>

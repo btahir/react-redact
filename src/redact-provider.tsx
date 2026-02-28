@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { RedactMode } from "./context.js";
+import type { CustomRedactRender, RedactMode } from "./context.js";
 import { RedactContext } from "./context.js";
 import type { BuiltInPatternName } from "./patterns/index.js";
 import { addShortcutListener } from "./utils/keyboard.js";
@@ -11,6 +11,8 @@ export interface RedactProviderProps {
 	enabled?: boolean;
 	autoDetect?: false | BuiltInPatternName[];
 	customPatterns?: RegExp[];
+	/** Default custom renderer for <Redact mode="custom"> when renderRedacted is not set. */
+	customRender?: CustomRedactRender;
 }
 
 export function RedactProvider({
@@ -20,6 +22,7 @@ export function RedactProvider({
 	enabled: initialEnabled = false,
 	autoDetect = false,
 	customPatterns,
+	customRender,
 }: RedactProviderProps) {
 	const [enabled, setEnabled] = useState(initialEnabled);
 
@@ -49,8 +52,9 @@ export function RedactProvider({
 			setEnabled,
 			autoDetect: autoDetect || undefined,
 			customPatterns,
+			customRender,
 		}),
-		[enabled, mode, autoDetect, customPatterns],
+		[enabled, mode, autoDetect, customPatterns, customRender],
 	);
 
 	return <RedactContext.Provider value={value}>{children}</RedactContext.Provider>;

@@ -29,10 +29,11 @@ import 'react-redact/styles.css';
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `children` | `ReactNode` | — | App or subtree |
-| `mode` | `'blur' \| 'mask' \| 'replace'` | `'blur'` | Default redaction style |
+| `mode` | `'blur' \| 'mask' \| 'replace' \| 'custom'` | `'blur'` | Default redaction style |
 | `shortcut` | `string` | `'mod+shift+x'` | Keyboard shortcut; `mod` = ⌘/Ctrl |
 | `enabled` | `boolean` | `false` | Initial redact state |
 | `autoDetect` | `false \| BuiltInPatternName[]` | `false` | Pattern names for context (e.g. useRedactPatterns) |
 | `customPatterns` | `RegExp[]` | — | Extra patterns for context |
+| `customRender` | `(props: { children, text }) => ReactNode` | — | Default renderer for `<Redact mode="custom">` when no `renderRedacted` |
 
 When `enabled` changes, the provider toggles the `react-redact-blur` class on all `[data-redact]` elements so auto-injected spans stay in sync.

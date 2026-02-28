@@ -34,4 +34,23 @@ Fake data is generated from a hash of the original value for emails, phones, SSN
 
 ## Custom
 
-Reserved for a user-provided render function in a future API.
+Use your own render function when redacted. Pass **`renderRedacted`** on `<Redact>` or **`customRender`** on `RedactProvider` (used when a `<Redact mode="custom">` doesn’t provide its own). Your component should render a wrapper with `data-redact` (and `aria-hidden`) so the global toggle still applies.
+
+```tsx
+import { Redact, RedactProvider } from 'react-redact';
+
+// Per-component
+<Redact
+  mode="custom"
+  renderRedacted={({ text }) => (
+    <span data-redact aria-hidden style={{ color: 'red' }}>[{text}]</span>
+  )}
+>
+  secret@email.com
+</Redact>
+
+// Default for all mode="custom" via provider
+<RedactProvider customRender={({ text }) => <span data-redact aria-hidden>REDACTED</span>}>
+  <Redact mode="custom">any text</Redact>
+</RedactProvider>
+```

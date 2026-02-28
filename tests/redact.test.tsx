@@ -22,4 +22,37 @@ describe("Redact", () => {
 		expect(span).toHaveClass("react-redact-blur");
 		expect(span?.textContent).toBe("secret@email.com");
 	});
+
+	it("uses renderRedacted when mode is custom", () => {
+		const renderRedacted = ({ text }: { children: React.ReactNode; text: string }) => (
+			<span data-redact aria-hidden data-testid="custom-redact">
+				[{text}]
+			</span>
+		);
+		renderWithProvider(
+			<Redact mode="custom" renderRedacted={renderRedacted}>
+				hidden
+			</Redact>,
+			true,
+		);
+		const el = document.querySelector("[data-testid=custom-redact]");
+		expect(el).toBeInTheDocument();
+		expect(el?.textContent).toBe("[hidden]");
+	});
+
+	it("uses provider customRender when mode is custom and no renderRedacted", () => {
+		const customRender = ({ text }: { children: React.ReactNode; text: string }) => (
+			<span data-redact aria-hidden data-testid="provider-custom">
+				{text.toUpperCase()}
+			</span>
+		);
+		render(
+			<RedactProvider enabled={true} customRender={customRender}>
+				<Redact mode="custom">secret</Redact>
+			</RedactProvider>,
+		);
+		const el = document.querySelector("[data-testid=provider-custom]");
+		expect(el).toBeInTheDocument();
+		expect(el?.textContent).toBe("SECRET");
+	});
 });

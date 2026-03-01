@@ -1,7 +1,20 @@
 import type { Metadata } from "next";
 import { RootProvider } from "fumadocs-ui/provider";
+import { Sora, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
+
+const sora = Sora({
+	subsets: ["latin"],
+	variable: "--font-sora",
+	display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+	subsets: ["latin"],
+	variable: "--font-mono",
+	display: "swap",
+});
 
 export const metadata: Metadata = {
 	title: "react-redact",
@@ -16,7 +29,11 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html
+			lang="en"
+			className={`${sora.variable} ${jetbrainsMono.variable}`}
+			suppressHydrationWarning
+		>
 			<body className="flex flex-col min-h-screen">
 				<RootProvider>{children}</RootProvider>
 			</body>

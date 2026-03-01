@@ -2,28 +2,28 @@ import Link from "next/link";
 
 export function Footer() {
 	return (
-		<footer className="border-t border-fd-border px-6 py-10">
-			<div className="mx-auto flex max-w-4xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
-				<div className="text-sm text-fd-muted-foreground">
-					Built by{" "}
-					<a
-						href="https://github.com/bilal-tahir-Invoworx"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="text-fd-foreground hover:underline"
-					>
-						Bilal Tahir
-					</a>
+		<footer className="border-t border-fd-border px-6 py-14">
+			<div className="mx-auto flex max-w-4xl flex-col items-center gap-8">
+				{/* Brand */}
+				<div className="text-center">
+					<div className="font-[family-name:var(--font-sora)] text-lg font-bold tracking-tight text-fd-foreground">
+						react-redact
+					</div>
+					<p className="mt-1.5 text-[13px] text-fd-muted-foreground">
+						One shortcut to make your app demo-safe.
+					</p>
 				</div>
-				<nav className="flex gap-6 text-sm text-fd-muted-foreground">
-					<Link href="/docs" className="hover:text-fd-foreground transition-colors">
+
+				{/* Links */}
+				<nav className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-[13px] font-[family-name:var(--font-mono)] text-fd-muted-foreground">
+					<Link href="/docs" className="transition-colors hover:text-fd-foreground">
 						Docs
 					</Link>
 					<a
 						href="https://github.com/bilal-tahir-Invoworx/react-redact"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="hover:text-fd-foreground transition-colors"
+						className="transition-colors hover:text-fd-foreground"
 					>
 						GitHub
 					</a>
@@ -31,7 +31,7 @@ export function Footer() {
 						href="https://www.npmjs.com/package/react-redact"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="hover:text-fd-foreground transition-colors"
+						className="transition-colors hover:text-fd-foreground"
 					>
 						npm
 					</a>
@@ -39,11 +39,25 @@ export function Footer() {
 						href="https://github.com/bilal-tahir-Invoworx/react-redact/blob/main/LICENSE"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="hover:text-fd-foreground transition-colors"
+						className="transition-colors hover:text-fd-foreground"
 					>
 						MIT License
 					</a>
 				</nav>
+
+				{/* Divider + credit */}
+				<div className="h-px w-16 bg-fd-border" />
+				<div className="text-[12px] text-fd-muted-foreground/60">
+					Built by{" "}
+					<a
+						href="https://github.com/bilal-tahir-Invoworx"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-fd-muted-foreground hover:text-fd-foreground transition-colors"
+					>
+						Bilal Tahir
+					</a>
+				</div>
 			</div>
 		</footer>
 	);

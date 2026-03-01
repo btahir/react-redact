@@ -19,40 +19,42 @@ export function InstallCommand() {
 	};
 
 	return (
-		<section className="px-6 py-10">
-			<div className="mx-auto max-w-md">
-				<div className="rounded-lg border border-fd-border bg-fd-card overflow-hidden">
-					{/* Tabs */}
-					<div className="flex border-b border-fd-border">
+		<section className="px-6 py-12">
+			<div className="mx-auto max-w-lg">
+				<div className="rounded-xl border border-fd-border bg-fd-card/60 backdrop-blur-sm overflow-hidden">
+					<div className="flex">
 						{managers.map((m, i) => (
 							<button
 								key={m.name}
 								type="button"
 								onClick={() => setActive(i)}
-								className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+								className={`flex-1 py-2.5 text-[12px] font-[family-name:var(--font-mono)] uppercase tracking-[0.15em] font-medium transition-all duration-200 ${
 									active === i
-										? "bg-fd-background text-fd-foreground"
-										: "text-fd-muted-foreground hover:text-fd-foreground"
+										? "bg-fd-foreground text-fd-background"
+										: "text-fd-muted-foreground hover:text-fd-foreground bg-fd-muted/30"
 								}`}
 							>
 								{m.name}
 							</button>
 						))}
 					</div>
-					{/* Command */}
-					<div className="flex items-center justify-between px-4 py-3">
-						<code className="font-mono text-sm text-fd-foreground">
-							<span className="text-fd-muted-foreground">$ </span>
+					<div className="flex items-center justify-between px-5 py-4">
+						<code className="font-[family-name:var(--font-mono)] text-[14px] text-fd-foreground">
+							<span className="text-red-500">$</span>{" "}
 							{managers[active].command}
 						</code>
 						<button
 							type="button"
 							onClick={copy}
-							className="ml-3 rounded-md p-1.5 text-fd-muted-foreground transition-colors hover:bg-fd-muted hover:text-fd-foreground"
+							className={`ml-4 rounded-md p-2 transition-all duration-200 ${
+								copied
+									? "bg-emerald-500/10 text-emerald-500"
+									: "text-fd-muted-foreground hover:bg-fd-muted hover:text-fd-foreground"
+							}`}
 							aria-label="Copy to clipboard"
 						>
 							{copied ? (
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
 									<title>Copied</title>
 									<polyline points="20 6 9 17 4 12" />
 								</svg>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RootProvider } from "fumadocs-ui/provider/next";
+import { RootProvider } from "fumadocs-ui/provider";
 import type { ReactNode } from "react";
 import "./globals.css";
 

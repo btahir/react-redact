@@ -1,4 +1,6 @@
-import { useCallback, useContext, useEffect, useRef } from "react";
+"use client";
+
+import { type ReactElement, useCallback, useContext, useEffect, useRef } from "react";
 import { RedactContext } from "./context.js";
 import { getBlurProps } from "./modes/blur.js";
 import { getMaskStyle, maskValue } from "./modes/mask.js";
@@ -20,7 +22,7 @@ export function RedactAuto({
 	children,
 	patterns: patternNames = ["email", "phone", "ssn", "credit-card", "ip"],
 	customPatterns = [],
-}: RedactAutoProps) {
+}: RedactAutoProps): ReactElement {
 	const rootRef = useRef<HTMLDivElement>(null);
 	const ctx = useContext(RedactContext);
 

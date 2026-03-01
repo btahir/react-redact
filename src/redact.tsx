@@ -1,4 +1,6 @@
-import { useContext } from "react";
+"use client";
+
+import { type ReactElement, useContext } from "react";
 import type { CustomRedactRender, RedactMode } from "./context.js";
 import { RedactContext } from "./context.js";
 import { getBlurProps } from "./modes/blur.js";
@@ -23,7 +25,12 @@ function textContent(node: React.ReactNode): string {
 /**
  * Wraps content to be visually redacted when redact mode is enabled.
  */
-export function Redact({ children, mode: propMode, replacement, renderRedacted }: RedactProps) {
+export function Redact({
+	children,
+	mode: propMode,
+	replacement,
+	renderRedacted,
+}: RedactProps): ReactElement {
 	const ctx = useContext(RedactContext);
 	const enabled = ctx?.enabled ?? false;
 	const effectiveMode = propMode ?? ctx?.mode ?? "blur";
@@ -65,11 +72,7 @@ export function Redact({ children, mode: propMode, replacement, renderRedacted }
 	// custom: use renderRedacted, then provider customRender, then blur
 	const customRenderer = renderRedacted ?? ctx?.customRender;
 	if (customRenderer) {
-		return (
-			<>
-				{customRenderer({ children, text })}
-			</>
-		);
+		return <>{customRenderer({ children, text })}</>;
 	}
 	const props = getBlurProps();
 	return (

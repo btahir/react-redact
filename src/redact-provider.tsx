@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+"use client";
+
+import { type ReactElement, useEffect, useMemo, useState } from "react";
 import type { CustomRedactRender, RedactMode } from "./context.js";
 import { RedactContext } from "./context.js";
 import type { BuiltInPatternName } from "./patterns/index.js";
@@ -23,7 +25,7 @@ export function RedactProvider({
 	autoDetect = false,
 	customPatterns,
 	customRender,
-}: RedactProviderProps) {
+}: RedactProviderProps): ReactElement {
 	const [enabled, setEnabled] = useState(initialEnabled);
 
 	// Sync when parent controls enabled via prop (controlled mode)

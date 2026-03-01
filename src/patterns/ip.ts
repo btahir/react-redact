@@ -8,5 +8,5 @@ function combineRegex(...regices: RegExp[]): RegExp {
 	return new RegExp(sources.join("|"), "g");
 }
 
-export const ipRegex = combineRegex(ipv4, ipv6);
-export const ipName = "ip" as const;
+export const ipRegex: RegExp = combineRegex(ipv4, ipv6);
+export const ipName: "ip" = "ip" as const;

@@ -12,6 +12,7 @@
 		"sourceMap": true,
 		"outDir": "dist",
 		"isolatedModules": true,
+		"isolatedDeclarations": true,
 		"noEmit": true
 	},
 	"include": ["src", "tests"],

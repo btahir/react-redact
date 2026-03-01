@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { type Context, createContext } from "react";
 import type { BuiltInPatternName } from "./patterns/index.js";
 
 export type RedactMode = "blur" | "mask" | "replace" | "custom";
@@ -22,4 +22,5 @@ export interface RedactContextValue {
 	customRender?: CustomRedactRender;
 }
 
-export const RedactContext = createContext<RedactContextValue | null>(null);
+export const RedactContext: Context<RedactContextValue | null> =
+	createContext<RedactContextValue | null>(null);

@@ -22,7 +22,7 @@ const builtIns: Record<BuiltInPatternName, PatternConfig> = {
 	ip: { regex: new RegExp(ipRegex.source, "g"), name: ipName },
 };
 
-export const patterns = builtIns;
+export const patterns: Record<BuiltInPatternName, PatternConfig> = builtIns;
 
 const VALID_NAMES = new Set<BuiltInPatternName>(Object.keys(builtIns) as BuiltInPatternName[]);
 

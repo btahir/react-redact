@@ -22,8 +22,8 @@ function luhnCheck(digits: string): boolean {
  * Match 13-19 digit sequences that pass Luhn. Returns global regex that we use
  * with exec in a loop and filter by Luhn.
  */
-export const creditCardRegex = CARD_REGEX;
-export const creditCardName = "credit-card" as const;
+export const creditCardRegex: RegExp = CARD_REGEX;
+export const creditCardName: "credit-card" = "credit-card" as const;
 
 export function isLuhnValid(card: string): boolean {
 	return luhnCheck(card);

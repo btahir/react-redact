@@ -29,6 +29,7 @@ function clickElement(selector: string) {
 	el?.click();
 }
 
+// Steps follow page order: Hero → InstallCommand → FeatureCards → BeforeAfter → CodeExample
 export const tourSteps: TourStep[] = [
 	// Step 0: Welcome (centered, no target)
 	{
@@ -51,7 +52,6 @@ export const tourSteps: TourStep[] = [
 		padding: 8,
 		borderRadius: 10,
 		action: async (signal) => {
-			// Auto-click toggle ON if not already
 			const btn = document.querySelector(
 				'[data-tour="hero-toggle"]',
 			) as HTMLElement | null;
@@ -72,7 +72,6 @@ export const tourSteps: TourStep[] = [
 		padding: 6,
 		borderRadius: 8,
 		action: async (signal) => {
-			// Auto-cycle through modes
 			for (const mode of ["blur", "mask", "replace"]) {
 				clickElement(`[data-tour="mode-${mode}"]`);
 				await waitMs(800, signal);
@@ -91,7 +90,29 @@ export const tourSteps: TourStep[] = [
 		borderRadius: 0,
 	},
 
-	// Step 4: Before/After
+	// Step 4: Install command (next section down)
+	{
+		target: "install-block",
+		title: "Ready to try it?",
+		description:
+			"Install with your favorite package manager. Zero dependencies, 3.3 kB gzipped, ESM + CJS.",
+		placement: "bottom",
+		padding: 8,
+		borderRadius: 12,
+	},
+
+	// Step 5: Auto-Detect feature card
+	{
+		target: "feature-auto-detect",
+		title: "No manual wrapping needed",
+		description:
+			"RedactAuto scans DOM subtrees for emails, phone numbers, SSNs, credit cards, and IPs. Add custom regex patterns too.",
+		placement: "right",
+		padding: 6,
+		borderRadius: 12,
+	},
+
+	// Step 6: Before/After toggle
 	{
 		target: "before-after-toggle",
 		title: "See the full picture",
@@ -111,18 +132,7 @@ export const tourSteps: TourStep[] = [
 		},
 	},
 
-	// Step 5: Auto-Detect feature card
-	{
-		target: "feature-auto-detect",
-		title: "No manual wrapping needed",
-		description:
-			"RedactAuto scans DOM subtrees for emails, phone numbers, SSNs, credit cards, and IPs. Add custom regex patterns too.",
-		placement: "right",
-		padding: 6,
-		borderRadius: 12,
-	},
-
-	// Step 6: Code example
+	// Step 7: Code example (last section)
 	{
 		target: "code-block",
 		title: "10 lines to get started",
@@ -131,16 +141,5 @@ export const tourSteps: TourStep[] = [
 		placement: "top",
 		padding: 8,
 		borderRadius: 16,
-	},
-
-	// Step 7: Install command
-	{
-		target: "install-block",
-		title: "Ready to try it?",
-		description:
-			"Install with your favorite package manager. Zero dependencies, 3.3 kB gzipped, ESM + CJS.",
-		placement: "bottom",
-		padding: 8,
-		borderRadius: 12,
 	},
 ];

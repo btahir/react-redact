@@ -33,6 +33,30 @@ export function useTour() {
 	return ctx;
 }
 
+/** Resolves when scrolling settles (no scroll event for 80ms), or after maxWait. */
+function waitForScrollEnd(maxWait = 2000): Promise<void> {
+	return new Promise((resolve) => {
+		let debounce: ReturnType<typeof setTimeout>;
+		const fallback = setTimeout(done, maxWait);
+
+		function done() {
+			clearTimeout(debounce);
+			clearTimeout(fallback);
+			window.removeEventListener("scroll", onScroll, true);
+			resolve();
+		}
+
+		function onScroll() {
+			clearTimeout(debounce);
+			debounce = setTimeout(done, 80);
+		}
+
+		window.addEventListener("scroll", onScroll, true);
+		// In case the element is already in view and no scroll fires at all
+		debounce = setTimeout(done, 200);
+	});
+}
+
 export function TourProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<TourState>({
 		isActive: false,
@@ -75,7 +99,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
 			const controller = new AbortController();
 			abortRef.current = controller;
 
-			// Mark transitioning — hides tooltip, spotlight tracks instantly
 			setState((s) => ({
 				...s,
 				isTransitioning: true,
@@ -93,17 +116,15 @@ export function TourProvider({ children }: { children: ReactNode }) {
 						behavior: "smooth",
 						block: "center",
 					});
-					// Wait for scroll to finish
-					await new Promise((r) => setTimeout(r, 500));
+					await waitForScrollEnd();
 				}
 			} else {
 				window.scrollTo({ top: 0, behavior: "smooth" });
-				await new Promise((r) => setTimeout(r, 350));
+				await waitForScrollEnd();
 			}
 
 			if (controller.signal.aborted) return;
 
-			// Scroll done — show tooltip
 			setState((s) => ({ ...s, isTransitioning: false }));
 
 			try {
@@ -120,7 +141,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
 		setState({ isActive: true, currentStep: 0, isTransitioning: false });
 	}, []);
 
-	// Keyboard navigation
 	useEffect(() => {
 		if (!state.isActive) return;
 

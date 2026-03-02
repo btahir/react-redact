@@ -16,9 +16,9 @@ Zero-dependency React components that visually hide PII — for demos, screensha
 
 ---
 
-| Before (PII visible) | After (⌘⇧X — redacted) |
-|---|---|
-| ![Before](apps/docs/public/readme-demo-before.png) | ![After](apps/docs/public/readme-demo-after.png) |
+<div align="center">
+  <img src="apps/docs/public/hero.gif" alt="react-redact demo" width="830" />
+</div>
 
 > **Visual-only:** This is a UI convenience tool for demos and screenshares. It does not remove data from the DOM.
 

@@ -78,6 +78,8 @@
 		"lint:pkg": "publint && attw --pack --entrypoints .",
 		"size": "size-limit",
 		"docs": "pnpm --filter react-redact-docs dev",
+    "video": "pnpm --filter react-redact-video studio",
+    "video:render": "pnpm --filter react-redact-video render:all",
 		"prepublishOnly": "pnpm run build",
 		"changeset": "changeset",
 		"version": "changeset version",

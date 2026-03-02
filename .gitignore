@@ -8,3 +8,4 @@ coverage
 .turbo
 .next
 .source
+apps/video/out/

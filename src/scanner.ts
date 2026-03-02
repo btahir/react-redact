@@ -53,7 +53,8 @@ function findMatches(
 		}
 	}
 	for (const re of customPatterns) {
-		const r = new RegExp(re.source, "g");
+		const flags = re.flags.includes("g") ? re.flags : `${re.flags}g`;
+		const r = new RegExp(re.source, flags);
 		let m = r.exec(text);
 		while (m !== null) {
 			add(m.index, m[0].length);
@@ -157,4 +158,11 @@ export function scheduleScan(
 		scanRoot(root, options, createSpan);
 	}, DEBOUNCE_MS);
 	debounceByRoot.set(root, { timer, options, createSpan });
+}
+
+export function cancelScheduledScan(root: HTMLElement): void {
+	const existing = debounceByRoot.get(root);
+	if (!existing) return;
+	clearTimeout(existing.timer);
+	debounceByRoot.delete(root);
 }

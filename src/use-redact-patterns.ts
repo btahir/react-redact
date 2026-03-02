@@ -15,7 +15,7 @@ export interface UseRedactPatternsReturn {
 
 /**
  * Hook to read active auto-detect pattern names and extend with custom patterns.
- * For now returns provider-level config; RedactAuto uses its own patterns prop.
+ * Returns provider-level config only; RedactAuto uses its own patterns prop.
  */
 export function useRedactPatterns(): UseRedactPatternsReturn {
 	const ctx = useContext(RedactContext);

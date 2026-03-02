@@ -55,4 +55,29 @@ describe("Redact", () => {
 		expect(el).toBeInTheDocument();
 		expect(el?.textContent).toBe("SECRET");
 	});
+
+	it("supports mask mode", () => {
+		renderWithProvider(<Redact mode="mask">123-45-6789</Redact>, true);
+		const span = document.querySelector("[data-redact]");
+		expect(span?.textContent).toBe("•••••••••••");
+		expect((span as HTMLElement).style.width).toBe("11ch");
+	});
+
+	it("supports replace mode and replacement prop", () => {
+		renderWithProvider(
+			<Redact mode="replace" replacement="REDACTED">
+				123-45-6789
+			</Redact>,
+			true,
+		);
+		const span = document.querySelector("[data-redact]");
+		expect(span?.textContent).toBe("REDACTED");
+	});
+
+	it("falls back to blur styling for custom mode when no renderer is provided", () => {
+		renderWithProvider(<Redact mode="custom">secret</Redact>, true);
+		const span = document.querySelector("[data-redact]");
+		expect(span).toHaveClass("react-redact-blur");
+		expect(span?.textContent).toBe("secret");
+	});
 });

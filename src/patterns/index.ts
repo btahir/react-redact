@@ -36,7 +36,8 @@ export function getPatterns(names: BuiltInPatternName[]): PatternConfig[] {
 }
 
 export function createPattern(regex: RegExp, name: string): PatternConfig {
-	return { regex: new RegExp(regex.source, "g"), name };
+	const flags = regex.flags.includes("g") ? regex.flags : `${regex.flags}g`;
+	return { regex: new RegExp(regex.source, flags), name };
 }
 
 /** Match credit-card only if Luhn passes. */

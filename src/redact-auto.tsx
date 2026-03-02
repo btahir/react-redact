@@ -6,12 +6,23 @@ import { getBlurProps } from "./modes/blur.js";
 import { getMaskStyle, maskValue } from "./modes/mask.js";
 import { replaceValue } from "./modes/replace.js";
 import type { BuiltInPatternName } from "./patterns/index.js";
-import { scanRoot, scheduleScan } from "./scanner.js";
+import { cancelScheduledScan, scanRoot, scheduleScan } from "./scanner.js";
 
 export interface RedactAutoProps {
 	children: React.ReactNode;
 	patterns?: BuiltInPatternName[];
 	customPatterns?: RegExp[];
+}
+
+function restoreAutoRedactions(root: HTMLElement): void {
+	const nodes = root.querySelectorAll<HTMLElement>("[data-redact-auto]");
+	for (const node of nodes) {
+		const original = node.getAttribute("data-redact-original") ?? node.textContent ?? "";
+		const parent = node.parentNode;
+		if (!parent) continue;
+		parent.replaceChild(document.createTextNode(original), node);
+	}
+	root.normalize();
 }
 
 /**
@@ -30,6 +41,9 @@ export function RedactAuto({
 		(text: string, hint?: string): HTMLSpanElement => {
 			const span = document.createElement("span");
 			span.setAttribute("data-redact", "");
+			span.setAttribute("data-redact-auto", "");
+			span.setAttribute("data-redact-original", text);
+			if (hint) span.setAttribute("data-redact-hint", hint);
 			span.setAttribute("aria-hidden", "true");
 			const mode = ctx?.mode ?? "blur";
 
@@ -53,7 +67,12 @@ export function RedactAuto({
 
 	useEffect(() => {
 		const root = rootRef.current;
-		if (!root || !ctx?.enabled) return;
+		if (!root) return;
+
+		// Make mode switches and disable transitions deterministic by reverting auto spans first.
+		cancelScheduledScan(root);
+		restoreAutoRedactions(root);
+		if (!ctx?.enabled) return;
 
 		const options = { patternNames, customPatterns };
 		scanRoot(root, options, createSpan);
@@ -63,7 +82,10 @@ export function RedactAuto({
 		});
 		observer.observe(root, { childList: true, subtree: true, characterData: true });
 
-		return () => observer.disconnect();
+		return () => {
+			observer.disconnect();
+			cancelScheduledScan(root);
+		};
 	}, [ctx?.enabled, patternNames, customPatterns, createSpan]);
 
 	return <div ref={rootRef}>{children}</div>;

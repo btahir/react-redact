@@ -17,13 +17,13 @@ Zero-dependency React components that visually hide PII — for demos, screensha
 ---
 
 <div align="center">
-  <img src="apps/docs/public/hero.gif" alt="react-redact demo" width="830" />
+  <img src="https://raw.githubusercontent.com/btahir/react-redact/main/apps/docs/public/hero.gif" alt="react-redact demo" width="830" />
 </div>
 
 > **Visual-only:** This is a UI convenience tool for demos and screenshares. It does not remove data from the DOM.
 
 <div align="center">
-  <img src="apps/docs/public/ph-1.png" alt="Before and after redaction" width="700" />
+  <img src="https://raw.githubusercontent.com/btahir/react-redact/main/apps/docs/public/ph-1.png" alt="Before and after redaction" width="700" />
 </div>
 
 ## Why react-redact?
@@ -80,7 +80,7 @@ Press **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) to toggle.
 ## Modes
 
 <div align="center">
-  <img src="apps/docs/public/ph-2.png" alt="Three redaction modes — blur, mask, replace" width="700" />
+  <img src="https://raw.githubusercontent.com/btahir/react-redact/main/apps/docs/public/ph-2.png" alt="Three redaction modes — blur, mask, replace" width="700" />
 </div>
 
 | Mode | What it does | Example output |
@@ -101,7 +101,7 @@ Press **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) to toggle.
 ## Auto-Detection
 
 <div align="center">
-  <img src="apps/docs/public/ph-4.png" alt="Auto-detect PII patterns" width="700" />
+  <img src="https://raw.githubusercontent.com/btahir/react-redact/main/apps/docs/public/ph-4.png" alt="Auto-detect PII patterns" width="700" />
 </div>
 
 `<RedactAuto>` scans DOM text nodes for PII patterns and wraps matches automatically:

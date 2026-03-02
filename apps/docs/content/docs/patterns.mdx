@@ -17,6 +17,8 @@ Built-in pattern names: `email`, `phone`, `ssn`, `credit-card`, `ip`. Use them i
 | `credit-card` | 13–19 digits, Luhn-valid (reduces false positives) |
 | `ip` | IPv4 and IPv6 |
 
+Name detection is intentionally not included. Generic name matching in free text is high-noise, so use manual `<Redact>` wrapping for names or targeted `customPatterns` for known, domain-specific formats.
+
 ## Custom patterns
 
 Pass `RegExp` with the global flag to `customPatterns` on the provider or to `<RedactAuto customPatterns={[/ACME-\d{6}/g]}>`.

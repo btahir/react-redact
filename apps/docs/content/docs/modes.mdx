@@ -30,7 +30,9 @@ Swaps content with deterministic fake data (or a custom string via the `replacem
 <Redact mode="replace" replacement="Jane Smith">John Doe</Redact>
 ```
 
-Fake data is generated from a hash of the original value for emails, phones, SSNs, IPs, and names.
+Fake data is generated from a hash of the original value for emails, phones, SSNs, IPs, and credit-card values.
+
+> Name detection is intentionally not built in for `RedactAuto` because generic name regex rules produce too many false positives. For names, use manual `<Redact>` wrapping (or provide targeted `customPatterns` for your own domain data).
 
 ## Custom
 

@@ -5,7 +5,7 @@ description: Read active pattern names and add custom patterns.
 
 # useRedactPatterns
 
-Returns the provider's `autoDetect` pattern names and a helper to create custom pattern configs. Useful when building UI that reflects or extends the active patterns.
+Returns the provider's `autoDetect` pattern names and a helper to build custom pattern configs. Useful for UI/state introspection.
 
 ## Usage
 
@@ -25,6 +25,6 @@ function PatternConfig() {
 |----------|------|-------------|
 | `patternNames` | `BuiltInPatternName[]` | Names from provider `autoDetect` |
 | `patterns` | `PatternConfig[]` | Configs for those names |
-| `addPattern` | `(regex, name) => PatternConfig` | Create a custom pattern config |
+| `addPattern` | `(regex, name) => PatternConfig` | Create a custom pattern config (does not mutate provider state) |
 
 When the provider has `autoDetect={false}` or no provider, `patternNames` and `patterns` are empty.

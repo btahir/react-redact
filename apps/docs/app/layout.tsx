@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 	title: "react-redact",
 	description:
 		"One keyboard shortcut to make your entire app demo-safe. Visually redact PII with blur, mask, or replace.",
+	icons: {
+		icon: "/favicon.ico",
+		apple: "/apple-icon.png",
+	},
 	openGraph: {
 		title: "react-redact",
 		description: "One keyboard shortcut to make your entire app demo-safe.",

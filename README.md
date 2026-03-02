@@ -22,6 +22,10 @@ Zero-dependency React components that visually hide PII — for demos, screensha
 
 > **Visual-only:** This is a UI convenience tool for demos and screenshares. It does not remove data from the DOM.
 
+<div align="center">
+  <img src="apps/docs/public/ph-1.png" alt="Before and after redaction" width="700" />
+</div>
+
 ## Why react-redact?
 
 You're about to share your screen. Your app is full of real customer data — emails, phone numbers, credit cards. You need to hide it **now**, not refactor your entire data layer.
@@ -75,6 +79,10 @@ Press **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) to toggle.
 
 ## Modes
 
+<div align="center">
+  <img src="apps/docs/public/ph-2.png" alt="Three redaction modes — blur, mask, replace" width="700" />
+</div>
+
 | Mode | What it does | Example output |
 |------|-------------|----------------|
 | **Blur** | CSS blur filter over original text | ░░░░░░░░░░░ |
@@ -91,6 +99,10 @@ Press **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) to toggle.
 ```
 
 ## Auto-Detection
+
+<div align="center">
+  <img src="apps/docs/public/ph-4.png" alt="Auto-detect PII patterns" width="700" />
+</div>
 
 `<RedactAuto>` scans DOM text nodes for PII patterns and wraps matches automatically:
 
@@ -130,7 +142,7 @@ Full docs, API reference, and interactive demos:
 Contributions are welcome! Please open an issue first to discuss what you'd like to change.
 
 ```bash
-git clone https://github.com/bilal-tahir-Invoworx/react-redact.git
+git clone https://github.com/btahir/react-redact.git
 cd react-redact
 pnpm install
 pnpm run build

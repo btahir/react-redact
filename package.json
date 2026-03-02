@@ -1,8 +1,17 @@
 {
 	"name": "react-redact",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "One keyboard shortcut to make your entire app demo-safe",
+	"author": "Bilal Tahir",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/btahir/react-redact.git"
+	},
+	"homepage": "https://github.com/btahir/react-redact",
+	"bugs": {
+		"url": "https://github.com/btahir/react-redact/issues"
+	},
 	"type": "module",
 	"exports": {
 		".": {

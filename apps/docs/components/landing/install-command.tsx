@@ -21,7 +21,7 @@ export function InstallCommand() {
 	return (
 		<section className="px-6 py-12">
 			<div className="mx-auto max-w-lg">
-				<div className="rounded-xl border border-fd-border bg-fd-card/60 backdrop-blur-sm overflow-hidden">
+				<div data-tour="install-block" className="rounded-xl border border-fd-border bg-fd-card/60 backdrop-blur-sm overflow-hidden">
 					<div className="flex">
 						{managers.map((m, i) => (
 							<button

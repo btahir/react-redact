@@ -46,6 +46,7 @@ export function FeatureCards() {
 					{features.map((f) => (
 						<div
 							key={f.number}
+							data-tour={f.number === "03" ? "feature-auto-detect" : undefined}
 							className="group relative bg-fd-card p-8 transition-colors duration-300 hover:bg-fd-muted/50"
 						>
 							{/* Number */}

@@ -2,51 +2,113 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { RedactProvider, Redact, useRedactMode } from "react-redact";
+import type { RedactMode } from "react-redact";
+import "react-redact/styles.css";
+import { useTour } from "./tour/tour-provider";
 
 const sampleData = [
-	{ label: "Email", value: "sarah.johnson@acme.corp", masked: "•••••••••••••••••••••••" },
-	{ label: "Phone", value: "(415) 555-0198", masked: "••••••••••••••" },
-	{ label: "SSN", value: "423-91-8847", masked: "•••-••-••••" },
-	{ label: "Card", value: "4532 8901 2345 6789", masked: "•••• •••• •••• ••••" },
+	{ label: "Email", value: "sarah.johnson@acme.corp" },
+	{ label: "Phone", value: "(415) 555-0198" },
+	{ label: "SSN", value: "423-91-8847" },
+	{ label: "Card", value: "4532 8901 2345 6789" },
 ];
 
-type Mode = "blur" | "mask" | "replace";
+function DemoPanel() {
+	const { isRedacted, toggle, enable } = useRedactMode();
+	const [mode, setMode] = useState<RedactMode>("blur");
 
-const replacements: Record<string, string> = {
-	"sarah.johnson@acme.corp": "jane.doe@example.com",
-	"(415) 555-0198": "(555) 200-4321",
-	"423-91-8847": "457-31-6802",
-	"4532 8901 2345 6789": "•••• •••• •••• ••••",
-};
+	// Auto-enable redaction after mount for a "wow" effect
+	useEffect(() => {
+		const timer = setTimeout(() => enable(), 1800);
+		return () => clearTimeout(timer);
+	}, [enable]);
 
-function RedactedValue({ value, masked, mode, redacted }: { value: string; masked: string; mode: Mode; redacted: boolean }) {
-	if (!redacted) {
-		return <span className="transition-all duration-500 ease-out">{value}</span>;
-	}
-	if (mode === "blur") {
-		return (
-			<span className="blur-[8px] select-none transition-all duration-500 ease-out">{value}</span>
-		);
-	}
-	if (mode === "mask") {
-		return (
-			<span className="select-none transition-all duration-500 ease-out tracking-[-0.02em]">{masked}</span>
-		);
-	}
 	return (
-		<span className="transition-all duration-500 ease-out text-red-400">{replacements[value] ?? value}</span>
+		<div className="rounded-2xl border border-fd-border bg-fd-card/80 backdrop-blur-md shadow-2xl shadow-black/5 overflow-hidden">
+			{/* Window chrome */}
+			<div className="flex items-center justify-between border-b border-fd-border px-5 py-3.5">
+				<div className="flex items-center gap-3">
+					<div className="flex gap-2">
+						<div className="h-3 w-3 rounded-full bg-fd-muted-foreground/20" />
+						<div className="h-3 w-3 rounded-full bg-fd-muted-foreground/20" />
+						<div className="h-3 w-3 rounded-full bg-fd-muted-foreground/20" />
+					</div>
+					<span className="text-[13px] font-[family-name:var(--font-mono)] text-fd-muted-foreground">
+						dashboard.tsx
+					</span>
+				</div>
+				<button
+					type="button"
+					data-tour="hero-toggle"
+					onClick={toggle}
+					className={`rounded-lg px-4 py-1.5 text-[13px] font-semibold font-[family-name:var(--font-mono)] tracking-wide transition-all duration-300 ${
+						isRedacted
+							? "bg-red-500 text-white shadow-[0_0_16px_rgba(239,68,68,0.25)]"
+							: "bg-fd-muted text-fd-muted-foreground hover:text-fd-foreground"
+					}`}
+				>
+					{isRedacted ? "REDACTED" : "VISIBLE"}
+				</button>
+			</div>
+
+			{/* Mode bar */}
+			<div
+				data-tour="hero-modes"
+				className="flex gap-0.5 border-b border-fd-border bg-fd-muted/30 px-5 py-2"
+			>
+				{(["blur", "mask", "replace"] as const).map((m) => (
+					<button
+						key={m}
+						type="button"
+						data-tour={`mode-${m}`}
+						onClick={() => setMode(m)}
+						className={`rounded-md px-3.5 py-1 text-[12px] font-[family-name:var(--font-mono)] font-medium uppercase tracking-widest transition-all duration-200 ${
+							mode === m
+								? "bg-fd-foreground text-fd-background"
+								: "text-fd-muted-foreground hover:text-fd-foreground"
+						}`}
+					>
+						{m}
+					</button>
+				))}
+			</div>
+
+			{/* Data rows */}
+			<div>
+				{sampleData.map((item, i) => (
+					<div
+						key={item.label}
+						data-tour={
+							item.label === "Email"
+								? "hero-row-email"
+								: undefined
+						}
+						className={`flex items-center justify-between px-5 py-3.5 transition-colors ${
+							i < sampleData.length - 1
+								? "border-b border-fd-border/50"
+								: ""
+						}`}
+					>
+						<span className="text-[12px] font-[family-name:var(--font-mono)] uppercase tracking-widest text-fd-muted-foreground">
+							{item.label}
+						</span>
+						<span className="font-[family-name:var(--font-mono)] text-[14px] text-fd-foreground">
+							<Redact mode={mode}>{item.value}</Redact>
+						</span>
+					</div>
+				))}
+			</div>
+		</div>
 	);
 }
 
 export function Hero() {
-	const [redacted, setRedacted] = useState(false);
-	const [mode, setMode] = useState<Mode>("blur");
 	const [mounted, setMounted] = useState(false);
+	const { startTour } = useTour();
 
 	useEffect(() => {
 		setMounted(true);
-		const timer = setTimeout(() => setRedacted(true), 1800);
-		return () => clearTimeout(timer);
 	}, []);
 
 	return (
@@ -135,6 +197,23 @@ export function Hero() {
 						</svg>
 						GitHub
 					</a>
+					<button
+						type="button"
+						onClick={startTour}
+						className="group inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/5 px-6 py-3.5 text-[15px] font-semibold text-red-500 transition-all duration-200 hover:bg-red-500/10 hover:border-red-500/60 hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]"
+					>
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							className="transition-transform duration-200 group-hover:scale-110"
+						>
+							<title>Play</title>
+							<path d="M8 5v14l11-7z" />
+						</svg>
+						Try the Tour
+					</button>
 				</div>
 
 				{/* Interactive Demo Panel */}
@@ -142,76 +221,19 @@ export function Hero() {
 					className={`mx-auto mt-16 max-w-lg ${mounted ? "landing-slide-up" : "opacity-0"}`}
 					style={{ animationDelay: "0.7s" }}
 				>
-					<div className="rounded-2xl border border-fd-border bg-fd-card/80 backdrop-blur-md shadow-2xl shadow-black/5 overflow-hidden">
-						{/* Window chrome */}
-						<div className="flex items-center justify-between border-b border-fd-border px-5 py-3.5">
-							<div className="flex items-center gap-3">
-								<div className="flex gap-2">
-									<div className="h-3 w-3 rounded-full bg-fd-muted-foreground/20" />
-									<div className="h-3 w-3 rounded-full bg-fd-muted-foreground/20" />
-									<div className="h-3 w-3 rounded-full bg-fd-muted-foreground/20" />
-								</div>
-								<span className="text-[13px] font-[family-name:var(--font-mono)] text-fd-muted-foreground">
-									dashboard.tsx
-								</span>
-							</div>
-							<button
-								type="button"
-								onClick={() => setRedacted(!redacted)}
-								className={`rounded-lg px-4 py-1.5 text-[13px] font-semibold font-[family-name:var(--font-mono)] tracking-wide transition-all duration-300 ${
-									redacted
-										? "bg-red-500 text-white shadow-[0_0_16px_rgba(239,68,68,0.25)]"
-										: "bg-fd-muted text-fd-muted-foreground hover:text-fd-foreground"
-								}`}
-							>
-								{redacted ? "REDACTED" : "VISIBLE"}
-							</button>
-						</div>
-
-						{/* Mode bar */}
-						<div className="flex gap-0.5 border-b border-fd-border bg-fd-muted/30 px-5 py-2">
-							{(["blur", "mask", "replace"] as const).map((m) => (
-								<button
-									key={m}
-									type="button"
-									onClick={() => setMode(m)}
-									className={`rounded-md px-3.5 py-1 text-[12px] font-[family-name:var(--font-mono)] font-medium uppercase tracking-widest transition-all duration-200 ${
-										mode === m
-											? "bg-fd-foreground text-fd-background"
-											: "text-fd-muted-foreground hover:text-fd-foreground"
-									}`}
-								>
-									{m}
-								</button>
-							))}
-						</div>
-
-						{/* Data rows */}
-						<div>
-							{sampleData.map((item, i) => (
-								<div
-									key={item.label}
-									className={`flex items-center justify-between px-5 py-3.5 transition-colors ${
-										i < sampleData.length - 1 ? "border-b border-fd-border/50" : ""
-									}`}
-								>
-									<span className="text-[12px] font-[family-name:var(--font-mono)] uppercase tracking-widest text-fd-muted-foreground">
-										{item.label}
-									</span>
-									<span className="font-[family-name:var(--font-mono)] text-[14px] text-fd-foreground">
-										<RedactedValue
-											value={item.value}
-											masked={item.masked}
-											mode={mode}
-											redacted={redacted}
-										/>
-									</span>
-								</div>
-							))}
-						</div>
-					</div>
+					<RedactProvider enabled={false}>
+						<DemoPanel />
+					</RedactProvider>
 					<p className="mt-4 text-center text-[13px] text-fd-muted-foreground/70">
 						Interactive — click toggle or switch modes
+						<span className="mx-1.5 text-fd-border">·</span>
+						<button
+							type="button"
+							onClick={startTour}
+							className="text-red-500/70 hover:text-red-500 transition-colors underline underline-offset-2"
+						>
+							take the guided tour
+						</button>
 					</p>
 				</div>
 			</div>

@@ -36,6 +36,7 @@ export function BeforeAfter() {
 					</span>
 					<button
 						type="button"
+						data-tour="before-after-toggle"
 						onClick={() => setShowRedacted(!showRedacted)}
 						className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 ${
 							showRedacted ? "bg-red-500" : "bg-fd-muted-foreground/25"

@@ -64,7 +64,7 @@ export function CodeExample() {
 					Wrap your app, mark the sensitive bits, toggle with a shortcut.
 				</p>
 
-				<div className="relative mt-10 rounded-2xl border border-fd-border bg-fd-card/80 backdrop-blur-sm overflow-hidden">
+				<div data-tour="code-block" className="relative mt-10 rounded-2xl border border-fd-border bg-fd-card/80 backdrop-blur-sm overflow-hidden">
 					{/* Header bar */}
 					<div className="flex items-center justify-between border-b border-fd-border/50 px-5 py-3">
 						<div className="flex items-center gap-3">

@@ -5,7 +5,7 @@ import { useState } from "react";
 const managers = [
 	{ name: "pnpm", command: "pnpm add react-redact" },
 	{ name: "npm", command: "npm install react-redact" },
-	{ name: "yarn", command: "yarn add react-redact" },
+	{ name: "bun", command: "bun add react-redact" },
 ] as const;
 
 export function InstallCommand() {

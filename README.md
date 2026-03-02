@@ -46,7 +46,7 @@ You're about to share your screen. Your app is full of real customer data — em
 ## Install
 
 ```bash
-pnpm add react-redact
+npm install react-redact
 ```
 
 ## Quick Start

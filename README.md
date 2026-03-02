@@ -139,4 +139,4 @@ pnpm test:run
 
 ## License
 
-[MIT](./LICENSE) — made by [Bilal Tahir](https://github.com/bilal-tahir-Invoworx)
+[MIT](./LICENSE)

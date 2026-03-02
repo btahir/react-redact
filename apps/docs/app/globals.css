@@ -73,9 +73,9 @@
 
 /* ---- Tour layer ---- */
 
-@keyframes tour-pulse-ring {
-  0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.65), 0 0 0 0 rgba(239, 68, 68, 0); }
-  50% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.65), 0 0 0 6px rgba(239, 68, 68, 0.25); }
+@keyframes tour-ring-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
 }
 
 @keyframes tour-tooltip-enter {
@@ -83,17 +83,13 @@
   100% { transform: translateY(0); opacity: 1; }
 }
 
-.tour-pulse-ring {
-  animation: tour-pulse-ring 2s ease-in-out infinite;
+.tour-ring {
+  border: 2px solid rgba(239, 68, 68, 0.4);
+  animation: tour-ring-pulse 2s ease-in-out infinite;
 }
 
 .tour-tooltip-enter {
   animation: tour-tooltip-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.tour-target-active {
-  position: relative;
-  z-index: 9999 !important;
 }
 
 /* Dot grid background pattern */

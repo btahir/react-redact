@@ -48,10 +48,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
 		abortRef.current?.abort();
 		abortRef.current = null;
 		setState({ isActive: false, currentStep: 0, isTransitioning: false });
-		// Remove any tour-target-active class
-		document
-			.querySelectorAll(".tour-target-active")
-			.forEach((el) => el.classList.remove("tour-target-active"));
 	}, []);
 
 	const runStepAction = useCallback(
@@ -79,6 +75,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
 			const controller = new AbortController();
 			abortRef.current = controller;
 
+			// Mark transitioning — hides tooltip, spotlight tracks instantly
 			setState((s) => ({
 				...s,
 				isTransitioning: true,
@@ -87,29 +84,26 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
 			const step = tourSteps[stepIndex];
 
-			// Remove old active class
-			document
-				.querySelectorAll(".tour-target-active")
-				.forEach((el) => el.classList.remove("tour-target-active"));
-
-			// Scroll to target and add active class
 			if (step.target) {
 				const el = document.querySelector(
 					`[data-tour="${step.target}"]`,
 				);
 				if (el) {
-					el.scrollIntoView({ behavior: "smooth", block: "center" });
-					await new Promise((r) => setTimeout(r, 450));
-					el.classList.add("tour-target-active");
+					el.scrollIntoView({
+						behavior: "smooth",
+						block: "center",
+					});
+					// Wait for scroll to finish
+					await new Promise((r) => setTimeout(r, 500));
 				}
 			} else {
-				// Welcome step — scroll to top
 				window.scrollTo({ top: 0, behavior: "smooth" });
-				await new Promise((r) => setTimeout(r, 300));
+				await new Promise((r) => setTimeout(r, 350));
 			}
 
 			if (controller.signal.aborted) return;
 
+			// Scroll done — show tooltip
 			setState((s) => ({ ...s, isTransitioning: false }));
 
 			try {
@@ -151,17 +145,23 @@ export function TourProvider({ children }: { children: ReactNode }) {
 			}
 		};
 
-		// Block user scroll while tour is active (but allow programmatic scroll)
 		const handleWheel = (e: WheelEvent) => {
+			e.preventDefault();
+		};
+		const handleTouchMove = (e: TouchEvent) => {
 			e.preventDefault();
 		};
 
 		window.addEventListener("keydown", handleKeyDown);
 		window.addEventListener("wheel", handleWheel, { passive: false });
+		window.addEventListener("touchmove", handleTouchMove, {
+			passive: false,
+		});
 
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown);
 			window.removeEventListener("wheel", handleWheel);
+			window.removeEventListener("touchmove", handleTouchMove);
 		};
 	}, [state.isActive, endTour, goToStep]);
 

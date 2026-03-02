@@ -12,7 +12,7 @@ interface Rect {
 	height: number;
 }
 
-const EMPTY_RECT: Rect = { top: 0, left: 0, width: 0, height: 0 };
+const ZERO_RECT: Rect = { top: 0, left: 0, width: 0, height: 0 };
 
 function getTargetRect(target: string | null, padding: number): Rect | null {
 	if (!target) return null;
@@ -65,7 +65,6 @@ function computePlacement(
 				break;
 		}
 
-		// Clamp to viewport
 		left = Math.max(12, Math.min(left, vw - tooltipW - 12));
 		top = Math.max(12, Math.min(top, vh - tooltipH - 12));
 
@@ -80,7 +79,10 @@ function computePlacement(
 	}
 
 	return {
-		top: spotRect.top + spotRect.height + gap,
+		top: Math.min(
+			spotRect.top + spotRect.height + gap,
+			window.innerHeight - tooltipH - 12,
+		),
 		left: Math.max(12, (vw - tooltipW) / 2),
 		actual: "bottom",
 	};
@@ -94,22 +96,20 @@ function getCaretStyle(
 	tooltipW: number,
 ): React.CSSProperties {
 	const size = 8;
+	const clampX = (raw: number) =>
+		Math.min(Math.max(raw, 16), tooltipW - 32);
+
+	const centerX =
+		spotRect.left + spotRect.width / 2 - tooltipLeft - size;
+	const centerY =
+		spotRect.top + spotRect.height / 2 - tooltipTop - size;
 
 	switch (placement) {
 		case "bottom":
 			return {
 				position: "absolute",
 				top: -size,
-				left: Math.min(
-					Math.max(
-						spotRect.left +
-							spotRect.width / 2 -
-							tooltipLeft -
-							size,
-						16,
-					),
-					tooltipW - 32,
-				),
+				left: clampX(centerX),
 				width: 0,
 				height: 0,
 				borderLeft: `${size}px solid transparent`,
@@ -120,16 +120,7 @@ function getCaretStyle(
 			return {
 				position: "absolute",
 				bottom: -size,
-				left: Math.min(
-					Math.max(
-						spotRect.left +
-							spotRect.width / 2 -
-							tooltipLeft -
-							size,
-						16,
-					),
-					tooltipW - 32,
-				),
+				left: clampX(centerX),
 				width: 0,
 				height: 0,
 				borderLeft: `${size}px solid transparent`,
@@ -140,11 +131,7 @@ function getCaretStyle(
 			return {
 				position: "absolute",
 				left: -size,
-				top:
-					spotRect.top +
-					spotRect.height / 2 -
-					tooltipTop -
-					size,
+				top: Math.max(16, centerY),
 				width: 0,
 				height: 0,
 				borderTop: `${size}px solid transparent`,
@@ -155,11 +142,7 @@ function getCaretStyle(
 			return {
 				position: "absolute",
 				right: -size,
-				top:
-					spotRect.top +
-					spotRect.height / 2 -
-					tooltipTop -
-					size,
+				top: Math.max(16, centerY),
 				width: 0,
 				height: 0,
 				borderTop: `${size}px solid transparent`,
@@ -170,10 +153,16 @@ function getCaretStyle(
 }
 
 export function TourOverlay() {
-	const { isActive, currentStep, isTransitioning, endTour, goToStep, totalSteps } =
-		useTour();
+	const {
+		isActive,
+		currentStep,
+		isTransitioning,
+		endTour,
+		goToStep,
+		totalSteps,
+	} = useTour();
 
-	const [spotRect, setSpotRect] = useState<Rect>(EMPTY_RECT);
+	const [spotRect, setSpotRect] = useState<Rect>(ZERO_RECT);
 	const [tooltipPos, setTooltipPos] = useState<{
 		top: number;
 		left: number;
@@ -188,16 +177,14 @@ export function TourOverlay() {
 		setMounted(true);
 	}, []);
 
-	// Update spotlight rect whenever step changes or on resize/scroll
+	// Update spotlight rect on scroll/resize (no CSS transitions — instant tracking)
 	const updateRect = useCallback(() => {
 		if (!isActive) return;
 		const step = tourSteps[currentStep];
 		if (!step) return;
 
-		const rect = getTargetRect(step.target, step.padding);
-		if (rect) {
-			setSpotRect(rect);
-		} else if (!step.target) {
+		if (!step.target) {
+			// Welcome step: tiny centered rect (just the overlay, no visible cutout)
 			const vw = window.innerWidth;
 			const vh = window.innerHeight;
 			setSpotRect({
@@ -206,11 +193,21 @@ export function TourOverlay() {
 				width: 2,
 				height: 2,
 			});
+			return;
+		}
+
+		const rect = getTargetRect(step.target, step.padding);
+		if (rect) {
+			setSpotRect(rect);
 		}
 	}, [isActive, currentStep]);
 
+	// Attach scroll/resize listeners and ResizeObserver
 	useEffect(() => {
+		if (!isActive) return;
+
 		updateRect();
+
 		window.addEventListener("resize", updateRect);
 		window.addEventListener("scroll", updateRect, true);
 
@@ -231,11 +228,14 @@ export function TourOverlay() {
 			window.removeEventListener("scroll", updateRect, true);
 			observer?.disconnect();
 		};
-	}, [updateRect, currentStep]);
+	}, [isActive, currentStep, updateRect]);
 
-	// Position tooltip after spotlight settles
+	// Position tooltip after scroll settles
 	useEffect(() => {
-		if (!isActive) return;
+		if (!isActive || isTransitioning) {
+			setTooltipVisible(false);
+			return;
+		}
 
 		setTooltipVisible(false);
 
@@ -271,16 +271,17 @@ export function TourOverlay() {
 			}
 
 			setTooltipVisible(true);
-		}, 250);
+		}, 150);
 
 		return () => clearTimeout(timer);
-	}, [isActive, currentStep, spotRect]);
+	}, [isActive, isTransitioning, currentStep, spotRect]);
 
 	if (!mounted || !isActive) return null;
 
 	const step = tourSteps[currentStep];
 	const isWelcome = !step?.target;
 	const isLastStep = currentStep === totalSteps - 1;
+	const br = step?.borderRadius ?? 12;
 
 	const overlay = (
 		<div
@@ -291,44 +292,51 @@ export function TourOverlay() {
 			{/* Click-to-close backdrop */}
 			<button
 				type="button"
-				className="fixed inset-0 z-[9998] cursor-default bg-transparent"
+				className="fixed inset-0 z-[9998] cursor-default bg-transparent border-0"
 				onClick={endTour}
 				aria-label="Close tour"
 				tabIndex={-1}
 			/>
 
-			{/* Spotlight cutout */}
+			{/* Spotlight: dark overlay with cutout hole */}
 			<div
-				className="fixed z-[9999] pointer-events-none tour-pulse-ring"
+				className="fixed z-[9999] pointer-events-none"
 				style={{
 					top: spotRect.top,
 					left: spotRect.left,
 					width: spotRect.width,
 					height: spotRect.height,
-					borderRadius: step?.borderRadius ?? 12,
+					borderRadius: br,
 					boxShadow: isWelcome
 						? "0 0 0 9999px rgba(0,0,0,0.75)"
 						: "0 0 0 9999px rgba(0,0,0,0.65)",
-					transition:
-						"top 0.4s cubic-bezier(0.16, 1, 0.3, 1), left 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
 				}}
 			/>
 
-			{/* Tooltip */}
+			{/* Pulse ring (separate from spotlight so it doesn't fight boxShadow) */}
+			{!isWelcome && !isTransitioning && (
+				<div
+					className="fixed z-[9999] pointer-events-none tour-ring"
+					style={{
+						top: spotRect.top - 3,
+						left: spotRect.left - 3,
+						width: spotRect.width + 6,
+						height: spotRect.height + 6,
+						borderRadius: br + 2,
+					}}
+				/>
+			)}
+
+			{/* Tooltip card */}
 			<div
 				ref={tooltipRef}
-				className={`fixed z-[10000] w-[340px] max-w-[calc(100vw-24px)] rounded-xl border border-fd-border bg-fd-card shadow-2xl shadow-black/20 ${
-					tooltipVisible && !isTransitioning
-						? "tour-tooltip-enter opacity-100"
-						: "opacity-0"
+				className={`fixed z-[10000] w-[340px] max-w-[calc(100vw-24px)] rounded-xl border border-fd-border bg-fd-card shadow-2xl shadow-black/20 transition-opacity duration-200 ${
+					tooltipVisible ? "tour-tooltip-enter opacity-100" : "opacity-0 pointer-events-none"
 				}`}
 				style={{
 					top: tooltipPos.top,
 					left: tooltipPos.left,
-					transition: tooltipVisible
-						? "opacity 0.2s ease-out"
-						: "opacity 0.15s ease-out",
-					pointerEvents: "auto",
+					pointerEvents: tooltipVisible ? "auto" : "none",
 				}}
 			>
 				{/* Caret arrow */}

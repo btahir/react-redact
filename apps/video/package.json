@@ -1,0 +1,26 @@
+{
+  "name": "react-redact-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:video": "remotion render LaunchVideo out/launch-video.mp4",
+    "render:hero-gif": "remotion render HeroGif --image-format png --sequence out/hero-frames && gifski --fps 15 --width 1660 --quality 80 -o out/hero.gif out/hero-frames/*.png",
+    "render:og": "remotion still OgImage out/og-image.png",
+    "render:social-gif": "remotion render SocialGif --image-format png --sequence out/social-frames && gifski --fps 15 --width 1200 --quality 80 -o out/social.gif out/social-frames/*.png",
+    "render:stills": "remotion still PHSlide1 out/ph-1.png && remotion still PHSlide2 out/ph-2.png && remotion still PHSlide3 out/ph-3.png && remotion still PHSlide4 out/ph-4.png && remotion still PHSlide5 out/ph-5.png",
+    "render:all": "pnpm render:video && pnpm render:hero-gif && pnpm render:og && pnpm render:social-gif && pnpm render:stills"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
+    "@remotion/transitions": "^4.0.0",
+    "remotion": "^4.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

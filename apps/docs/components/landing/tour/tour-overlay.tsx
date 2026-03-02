@@ -27,10 +27,16 @@ function getTargetRect(target: string | null, padding: number): Rect | null {
 	};
 }
 
+/**
+ * Pick the best placement for the tooltip.
+ * Tries placements WITHOUT clamping first — only the one that
+ * genuinely fits (no overlap with spotlight, fully in viewport) wins.
+ * Final position is then clamped as a safety net.
+ */
 function computePlacement(
-	spotRect: Rect,
-	tooltipW: number,
-	tooltipH: number,
+	spot: Rect,
+	tw: number,
+	th: number,
 	preferred: Placement,
 ): { top: number; left: number; actual: Placement } {
 	const gap = 16;
@@ -38,53 +44,67 @@ function computePlacement(
 	const vh = window.innerHeight;
 	const isMobile = vw < 640;
 
-	const placements: Placement[] = isMobile
+	// Minimum assumed tooltip height — guards against measuring 0
+	const safeH = Math.max(th, 180);
+
+	const order: Placement[] = isMobile
 		? ["bottom", "top"]
 		: [preferred, "bottom", "top", "right", "left"];
 
-	for (const p of placements) {
-		let top = 0;
-		let left = 0;
-
+	function raw(p: Placement): { top: number; left: number } {
 		switch (p) {
 			case "bottom":
-				top = spotRect.top + spotRect.height + gap;
-				left = spotRect.left + spotRect.width / 2 - tooltipW / 2;
-				break;
+				return {
+					top: spot.top + spot.height + gap,
+					left: spot.left + spot.width / 2 - tw / 2,
+				};
 			case "top":
-				top = spotRect.top - tooltipH - gap;
-				left = spotRect.left + spotRect.width / 2 - tooltipW / 2;
-				break;
+				return {
+					top: spot.top - safeH - gap,
+					left: spot.left + spot.width / 2 - tw / 2,
+				};
 			case "right":
-				top = spotRect.top + spotRect.height / 2 - tooltipH / 2;
-				left = spotRect.left + spotRect.width + gap;
-				break;
+				return {
+					top: spot.top + spot.height / 2 - safeH / 2,
+					left: spot.left + spot.width + gap,
+				};
 			case "left":
-				top = spotRect.top + spotRect.height / 2 - tooltipH / 2;
-				left = spotRect.left - tooltipW - gap;
-				break;
-		}
-
-		left = Math.max(12, Math.min(left, vw - tooltipW - 12));
-		top = Math.max(12, Math.min(top, vh - tooltipH - 12));
-
-		if (
-			top >= 0 &&
-			top + tooltipH <= vh &&
-			left >= 0 &&
-			left + tooltipW <= vw
-		) {
-			return { top, left, actual: p };
+				return {
+					top: spot.top + spot.height / 2 - safeH / 2,
+					left: spot.left - tw - gap,
+				};
 		}
 	}
 
+	// Try each placement — pick the first that fits without clamping
+	for (const p of order) {
+		const pos = raw(p);
+		if (
+			pos.top >= 8 &&
+			pos.top + safeH <= vh - 8 &&
+			pos.left >= 8 &&
+			pos.left + tw <= vw - 8
+		) {
+			return {
+				// Clamp left only (horizontal centering can still overshoot)
+				top: pos.top,
+				left: Math.max(12, Math.min(pos.left, vw - tw - 12)),
+				actual: p,
+			};
+		}
+	}
+
+	// Nothing fits perfectly — use "bottom" or "top" whichever has more space,
+	// then hard-clamp into viewport
+	const spaceBelow = vh - (spot.top + spot.height + gap);
+	const spaceAbove = spot.top - gap;
+	const best = spaceBelow >= spaceAbove ? "bottom" : "top";
+	const pos = raw(best);
+
 	return {
-		top: Math.min(
-			spotRect.top + spotRect.height + gap,
-			window.innerHeight - tooltipH - 12,
-		),
-		left: Math.max(12, (vw - tooltipW) / 2),
-		actual: "bottom",
+		top: Math.max(12, Math.min(pos.top, vh - safeH - 12)),
+		left: Math.max(12, Math.min(pos.left, vw - tw - 12)),
+		actual: best,
 	};
 }
 
@@ -177,14 +197,13 @@ export function TourOverlay() {
 		setMounted(true);
 	}, []);
 
-	// Update spotlight rect on scroll/resize (no CSS transitions — instant tracking)
+	// Update spotlight rect on scroll/resize — instant tracking, no transitions
 	const updateRect = useCallback(() => {
 		if (!isActive) return;
 		const step = tourSteps[currentStep];
 		if (!step) return;
 
 		if (!step.target) {
-			// Welcome step: tiny centered rect (just the overlay, no visible cutout)
 			const vw = window.innerWidth;
 			const vh = window.innerHeight;
 			setSpotRect({
@@ -202,7 +221,6 @@ export function TourOverlay() {
 		}
 	}, [isActive, currentStep]);
 
-	// Attach scroll/resize listeners and ResizeObserver
 	useEffect(() => {
 		if (!isActive) return;
 
@@ -230,7 +248,7 @@ export function TourOverlay() {
 		};
 	}, [isActive, currentStep, updateRect]);
 
-	// Position tooltip after scroll settles
+	// Position tooltip after scroll settles — uses rAF to guarantee layout is done
 	useEffect(() => {
 		if (!isActive || isTransitioning) {
 			setTooltipVisible(false);
@@ -239,39 +257,43 @@ export function TourOverlay() {
 
 		setTooltipVisible(false);
 
+		// Wait a tick, then use rAF to ensure layout is committed before measuring
 		const timer = setTimeout(() => {
-			const step = tourSteps[currentStep];
-			if (!step) return;
+			requestAnimationFrame(() => {
+				const step = tourSteps[currentStep];
+				if (!step) return;
 
-			const tooltip = tooltipRef.current;
-			if (!tooltip) return;
+				const tooltip = tooltipRef.current;
+				if (!tooltip) return;
 
-			const tooltipW = tooltip.offsetWidth;
-			const tooltipH = tooltip.offsetHeight;
+				const tooltipW = tooltip.offsetWidth;
+				const tooltipH = tooltip.offsetHeight;
 
-			if (!step.target) {
-				const vw = window.innerWidth;
-				const vh = window.innerHeight;
-				setTooltipPos({
-					top: vh / 2 - tooltipH / 2,
-					left: Math.max(12, (vw - tooltipW) / 2),
-					placement: "bottom",
-				});
-			} else {
-				const rect = getTargetRect(step.target, step.padding);
-				if (rect) {
-					const { top, left, actual } = computePlacement(
-						rect,
-						tooltipW,
-						tooltipH,
-						step.placement,
-					);
-					setTooltipPos({ top, left, placement: actual });
+				if (!step.target) {
+					const vw = window.innerWidth;
+					const vh = window.innerHeight;
+					const safeH = Math.max(tooltipH, 180);
+					setTooltipPos({
+						top: vh / 2 - safeH / 2,
+						left: Math.max(12, (vw - tooltipW) / 2),
+						placement: "bottom",
+					});
+				} else {
+					const rect = getTargetRect(step.target, step.padding);
+					if (rect) {
+						const { top, left, actual } = computePlacement(
+							rect,
+							tooltipW,
+							tooltipH,
+							step.placement,
+						);
+						setTooltipPos({ top, left, placement: actual });
+					}
 				}
-			}
 
-			setTooltipVisible(true);
-		}, 150);
+				setTooltipVisible(true);
+			});
+		}, 100);
 
 		return () => clearTimeout(timer);
 	}, [isActive, isTransitioning, currentStep, spotRect]);
@@ -313,7 +335,7 @@ export function TourOverlay() {
 				}}
 			/>
 
-			{/* Pulse ring (separate from spotlight so it doesn't fight boxShadow) */}
+			{/* Pulse ring */}
 			{!isWelcome && !isTransitioning && (
 				<div
 					className="fixed z-[9999] pointer-events-none tour-ring"
@@ -331,7 +353,9 @@ export function TourOverlay() {
 			<div
 				ref={tooltipRef}
 				className={`fixed z-[10000] w-[340px] max-w-[calc(100vw-24px)] rounded-xl border border-fd-border bg-fd-card shadow-2xl shadow-black/20 transition-opacity duration-200 ${
-					tooltipVisible ? "tour-tooltip-enter opacity-100" : "opacity-0 pointer-events-none"
+					tooltipVisible
+						? "tour-tooltip-enter opacity-100"
+						: "opacity-0 pointer-events-none"
 				}`}
 				style={{
 					top: tooltipPos.top,

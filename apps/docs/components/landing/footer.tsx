@@ -20,7 +20,7 @@ export function Footer() {
 						Docs
 					</Link>
 					<a
-						href="https://github.com/bilal-tahir-Invoworx/react-redact"
+						href="https://github.com/btahir/react-redact"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="transition-colors hover:text-fd-foreground"
@@ -36,7 +36,7 @@ export function Footer() {
 						npm
 					</a>
 					<a
-						href="https://github.com/bilal-tahir-Invoworx/react-redact/blob/main/LICENSE"
+						href="https://github.com/btahir/react-redact/blob/main/LICENSE"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="transition-colors hover:text-fd-foreground"
@@ -50,7 +50,7 @@ export function Footer() {
 				<div className="text-[12px] text-fd-muted-foreground/60">
 					Built by{" "}
 					<a
-						href="https://github.com/bilal-tahir-Invoworx"
+						href="https://github.com/btahir"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="text-fd-muted-foreground hover:text-fd-foreground transition-colors"

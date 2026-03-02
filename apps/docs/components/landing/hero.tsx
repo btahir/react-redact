@@ -124,7 +124,7 @@ export function Hero() {
 						</svg>
 					</Link>
 					<a
-						href="https://github.com/bilal-tahir-Invoworx/react-redact"
+						href="https://github.com/btahir/react-redact"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="inline-flex items-center gap-2.5 rounded-lg border border-fd-border bg-fd-card/60 backdrop-blur-sm px-7 py-3.5 text-[15px] font-semibold text-fd-foreground transition-all duration-200 hover:bg-fd-muted hover:border-fd-muted-foreground/30"

@@ -16,10 +16,20 @@ const jetbrainsMono = JetBrains_Mono({
 	display: "swap",
 });
 
+function getMetadataBase(): URL {
+	const raw =
+		process.env.NEXT_PUBLIC_SITE_URL ??
+		process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+		"http://localhost:3001";
+	const normalized = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+	return new URL(normalized);
+}
+
 export const metadata: Metadata = {
 	title: "react-redact",
 	description:
 		"One keyboard shortcut to make your entire app demo-safe. Visually redact PII with blur, mask, or replace.",
+	metadataBase: getMetadataBase(),
 	icons: {
 		icon: "/favicon.ico",
 		apple: "/apple-icon.png",

@@ -13,10 +13,10 @@ Returns the current redact state and functions to enable, disable, or toggle. Mu
 import { useRedactMode } from 'react-redact';
 
 function AdminBar() {
-  const { isRedacted, enable, disable, toggle } = useRedactMode();
+  const { isRedacted, mode, enable, disable, toggle } = useRedactMode();
   return (
     <button onClick={toggle}>
-      {isRedacted ? '🔒' : '🔓'} Demo mode
+      {isRedacted ? '🔒' : '🔓'} Demo mode ({mode})
     </button>
   );
 }
@@ -27,8 +27,9 @@ function AdminBar() {
 | Property | Type | Description |
 |----------|------|-------------|
 | `isRedacted` | `boolean` | Whether redaction is currently on |
+| `mode` | `'blur' \| 'mask' \| 'replace' \| 'custom'` | The provider's active redaction mode |
 | `enable` | `() => void` | Turn redaction on |
 | `disable` | `() => void` | Turn redaction off |
 | `toggle` | `() => void` | Flip redaction state |
 
-Outside a provider, `isRedacted` is `false` and the functions are no-ops.
+Outside a provider, `isRedacted` is `false`, `mode` is `'blur'`, and the functions are no-ops.

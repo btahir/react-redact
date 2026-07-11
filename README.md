@@ -20,9 +20,15 @@ Zero-dependency React components that visually hide PII — for demos, screensha
   <img src="https://raw.githubusercontent.com/btahir/react-redact/main/apps/docs/public/hero.gif" alt="react-redact demo" width="830" />
 </div>
 
-> **Visual-only:** This is a UI convenience tool for demos and screenshares. It does not remove data from the DOM.
+> **⚠️ Visual-only — not a security boundary.** react-redact hides PII on screen; it does not remove
+> it from the page. The real value is still sitting in the DOM (and, for `<RedactAuto>`, in a
+> `data-redact-original` attribute) and can be read via "View Source", browser dev tools, the
+> accessibility tree, or a few lines of JS — by you or anyone watching your screenshare over a
+> screen-recording pipeline that captures the DOM rather than pixels. Never use it in place of
+> real server-side redaction, and never rely on it to protect data from a technically curious
+> viewer. See [Security model](#security-model) for the full breakdown.
 
-> **Blur works with zero CSS.** `mode="blur"` applies `filter: blur(...)` as an inline style, so it's visually safe even if you forget to import `react-redact/styles.css`. Import the stylesheet anyway for the `react-redact-blur` class override hook and the optional `.react-redact-section` `content-visibility` helper.
+> **Blur works with zero CSS.** `mode="blur"` applies `filter: blur(...)` as an inline style, so it's visually safe even if you forget to import `react-redact/styles.css`. The stylesheet is entirely optional — import it only if you want the `react-redact-blur` class override hook or the opt-in `.react-redact-section` `content-visibility` helper.
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/btahir/react-redact/main/apps/docs/public/ph-1.png" alt="Before and after redaction" width="700" />
@@ -55,7 +61,7 @@ npm install react-redact
 
 ```tsx
 import { RedactProvider, Redact, useRedactMode } from "react-redact";
-import "react-redact/styles.css";
+import "react-redact/styles.css"; // optional — blur works without it, see note above
 
 function App() {
   return (
@@ -78,6 +84,33 @@ function Dashboard() {
 ```
 
 Press **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) to toggle.
+
+### Other ways to toggle
+
+`useRedactMode()` also exposes the active `mode`, so you can react to it in your own UI:
+
+```tsx
+const { isRedacted, mode, enable, disable, toggle } = useRedactMode();
+```
+
+Change the keyboard shortcut via `<RedactProvider shortcut="mod+shift+r">` (`mod` = ⌘ on Mac,
+Ctrl elsewhere), or skip the shortcut entirely by passing `shortcut=""`/`shortcut={undefined}` and
+driving `enable`/`disable`/`toggle` yourself.
+
+For permanent demo environments, load the page with `?redact=true` (or `?redact=1`) and read it
+with `getInitialRedactEnabled()`:
+
+```tsx
+import { RedactProvider, getInitialRedactEnabled } from "react-redact";
+
+<RedactProvider enabled={getInitialRedactEnabled()}>
+  <App />
+</RedactProvider>
+```
+
+`getInitialRedactEnabled()` reads `window.location.search` and returns `false` during SSR (no
+`window`) — for an env-based default that also works server-side, resolve it in your own app code
+and pass the result as `enabled`.
 
 ## Modes
 
@@ -152,7 +185,7 @@ Blur radius and mask character are configurable, at the provider (as defaults) o
 | `<RedactProvider>` | Component | Context provider — wraps your app, configures mode/shortcut/blurRadius/maskChar |
 | `<Redact>` | Component | Wraps known PII for manual redaction |
 | `<RedactAuto>` | Component | Scans a subtree and auto-wraps detected PII |
-| `useRedactMode()` | Hook | Returns `{ isRedacted, mode, toggle, enable, disable }` |
+| `useRedactMode()` | Hook | Returns `{ isRedacted, mode, enable, disable, toggle }` |
 | `useRedactPatterns()` | Hook | Read active patterns and add custom ones |
 | `getInitialRedactEnabled()` | Utility | Read `?redact=true` from URL for initial state |
 
@@ -176,12 +209,49 @@ function App() {
 `onEnabledChange` fires for every internally-driven change (keyboard shortcut, `useRedactMode()`);
 it is not called when `enabled` changes purely because you updated the prop yourself.
 
+## Security model
+
+**react-redact only changes what's rendered on screen. It is not encryption, access control, or
+data removal, and it should never be the only thing standing between a viewer and real PII.**
+
+What actually happens under the hood, mode by mode:
+
+- **Blur** — the real text is rendered into the DOM exactly as given, with `filter: blur(...)`
+  and `user-select: none` layered on as styling. Disable the filter (dev tools, "View Source",
+  reader mode, a screenshot tool that renders past CSS filters) and the original value is right
+  there as a text node.
+- **Mask** — `<Redact mode="mask">` renders only the bullet string; the real value isn't written
+  into that component's output DOM. However, **`<RedactAuto>` always stores the original matched
+  text in a `data-redact-original` attribute on the wrapping span, regardless of mode** — including
+  mask and replace — specifically so it can restore the page when redaction is toggled off. That
+  attribute is plain, uninspected DOM content: `document.querySelectorAll('[data-redact-original]')`
+  recovers every auto-detected value even while masked.
+- **Replace** — same caveat as mask: manual `<Redact mode="replace">` doesn't emit the real value,
+  but `<RedactAuto>`'s replace mode still writes it to `data-redact-original`.
+- **Custom** — entirely up to your `renderRedacted`/`customRender` function; react-redact doesn't
+  enforce anything about what it outputs.
+
+Practical implications:
+
+- Don't rely on this for anything you wouldn't be comfortable also putting in a public HTML
+  comment. Real secrets (API keys, tokens, passwords) belong in a secrets manager, not behind
+  `<Redact>`.
+- `aria-hidden="true"` hides redacted spans from assistive tech, but a misconfigured or
+  non-compliant screen reader could still announce the content — it's a convention, not a
+  guarantee.
+- Screen recording/screenshare tools that capture the DOM (rather than a pixel-accurate screen
+  grab) can bypass CSS-based hiding entirely.
+- This library is aimed at demos, screenshares, and presentations where the audience isn't
+  actively trying to extract the underlying data — not at protecting data from the person
+  looking at the screen.
+
 ## Documentation
 
 Full docs, API reference, and interactive demos:
 
 - **Local:** `pnpm --filter react-redact-docs dev` → [localhost:3001](http://localhost:3001)
 - **Content:** [`apps/docs/content/docs`](./apps/docs/content/docs)
+- **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## Contributing
 

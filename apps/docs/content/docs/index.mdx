@@ -5,7 +5,7 @@ description: Install react-redact and add demo-safe redaction to your React app 
 
 # Getting Started
 
-**react-redact** lets you visually hide PII in your UI with a single keyboard shortcut. It's designed for demos, screenshares, and presentations — not as a security product. Data stays in the DOM; only the display changes.
+**react-redact** lets you visually hide PII in your UI with a single keyboard shortcut. It's designed for demos, screenshares, and presentations — not as a security product. Data stays in the DOM (readable via dev tools or view-source); only the display changes. See [Security model](#security-model) below for the full breakdown.
 
 ## Install
 
@@ -21,7 +21,7 @@ pnpm add react-redact
 
 ```tsx
 import { RedactProvider } from 'react-redact';
-import 'react-redact/styles.css';
+import 'react-redact/styles.css'; // optional — mode="blur" works without it via inline styles
 
 export default function App({ children }) {
   return (
@@ -82,6 +82,25 @@ import { RedactProvider, getInitialRedactEnabled } from 'react-redact';
   {children}
 </RedactProvider>
 ```
+
+## Security model
+
+react-redact is **visual-only**. It hides PII on screen; it does not remove it from the page, encrypt
+it, or restrict access to it.
+
+- **Blur** renders the real text into the DOM and layers `filter: blur(...)` + `user-select: none`
+  on top as styling. Disabling the filter (dev tools, view-source, a screenshot tool that renders
+  past CSS filters) reveals the original value.
+- **Mask/replace** via `<Redact>` don't write the real value into that component's own output, but
+  **`<RedactAuto>` always stores the original matched text in a `data-redact-original` attribute,
+  regardless of mode** — including mask and replace — so it can restore the page when redaction is
+  toggled off. That attribute is inspectable DOM content.
+- Treat anything behind `<Redact>`/`<RedactAuto>` as if it were still visible in the page source,
+  because it is. Real secrets (API keys, tokens, passwords) don't belong behind this library —
+  use a secrets manager instead.
+
+Use react-redact for demos and screenshares where the audience isn't actively trying to extract
+the underlying data, not as a substitute for server-side redaction or access control.
 
 ## Next steps
 

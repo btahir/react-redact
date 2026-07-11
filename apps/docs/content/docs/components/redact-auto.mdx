@@ -19,6 +19,11 @@ import { RedactAuto } from 'react-redact';
 <RedactAuto patterns={['ssn']} customPatterns={[/ACME-\d{6}/g]}>
   <DocumentView />
 </RedactAuto>
+
+{/* Wrapper defaults to "div" — use "span" (or another tag) inside a flex/grid layout */}
+<RedactAuto as="span" blurRadius={10} maskChar="*">
+  <span>Inline PII in a flex row: user@company.com</span>
+</RedactAuto>
 ```
 
 ## Props
@@ -28,5 +33,13 @@ import { RedactAuto } from 'react-redact';
 | `children` | `ReactNode` | — | Subtree to scan |
 | `patterns` | `BuiltInPatternName[]` | all | `'email' \| 'phone' \| 'ssn' \| 'credit-card' \| 'ip'` |
 | `customPatterns` | `RegExp[]` | `[]` | Additional regex patterns (global) |
+| `blurRadius` | `number` | from context (`6`) | Overrides the provider's default blur radius (px) for auto-detected spans |
+| `maskChar` | `string` | from context (`'•'`) | Overrides the provider's default mask character for auto-detected spans |
+| `as` | `ElementType` | `'div'` | Wrapper element used to scan/mutate the subtree. Use `'span'`/`'section'`/etc. when the default `div` would break a flex/grid layout |
 
-Scanning and wrapping only run when the provider's `enabled` is `true`. The visual style (blur, mask, replace) comes from the provider's `mode`.
+Scanning and wrapping only run when the provider's `enabled` is `true`. The visual style (blur, mask, replace) comes from the provider's `mode`. `patterns`/`customPatterns` are keyed internally by a stable string derived from their contents, so passing fresh array/regex literals on every render does not tear down and re-scan the subtree.
+
+> **DOM note:** regardless of mode, each auto-detected match is wrapped in a span carrying a
+> `data-redact-original` attribute with the real matched text (used to restore the page when
+> redaction toggles off). That attribute is present in the DOM — including in mask/replace mode —
+> so it's inspectable via dev tools. See the [Security model](/docs#security-model) note.

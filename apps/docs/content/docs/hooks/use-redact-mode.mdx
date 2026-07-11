@@ -13,10 +13,11 @@ Returns the current redact state and functions to enable, disable, or toggle. Mu
 import { useRedactMode } from 'react-redact';
 
 function AdminBar() {
-  const { isRedacted, mode, enable, disable, toggle } = useRedactMode();
+  const { isRedacted, mode, enable, disable, toggle, isScreenSharing } = useRedactMode();
   return (
     <button onClick={toggle}>
       {isRedacted ? '🔒' : '🔓'} Demo mode ({mode})
+      {isScreenSharing && ' · recording'}
     </button>
   );
 }
@@ -27,9 +28,10 @@ function AdminBar() {
 | Property | Type | Description |
 |----------|------|-------------|
 | `isRedacted` | `boolean` | Whether redaction is currently on |
-| `mode` | `'blur' \| 'mask' \| 'replace' \| 'custom'` | The provider's active redaction mode |
+| `mode` | `'blur' \| 'mask' \| 'replace' \| 'secure' \| 'custom'` | The provider's active redaction mode |
 | `enable` | `() => void` | Turn redaction on |
 | `disable` | `() => void` | Turn redaction off |
 | `toggle` | `() => void` | Flip redaction state |
+| `isScreenSharing` | `boolean` | Whether a same-tab `getDisplayMedia()` capture is currently active (only meaningful when the provider's `autoRedactOnScreenShare` is `true`) |
 
-Outside a provider, `isRedacted` is `false`, `mode` is `'blur'`, and the functions are no-ops.
+Outside a provider, `isRedacted` and `isScreenSharing` are `false`, `mode` is `'blur'`, and the functions are no-ops.

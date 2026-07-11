@@ -1,7 +1,7 @@
 import { type Context, createContext } from "react";
 import type { BuiltInPatternName } from "./patterns/index.js";
 
-export type RedactMode = "blur" | "mask" | "replace" | "custom";
+export type RedactMode = "blur" | "mask" | "replace" | "secure" | "custom";
 
 /** Props passed to a custom redaction render function. */
 export interface CustomRedactRenderProps {
@@ -24,6 +24,8 @@ export interface RedactContextValue {
 	blurRadius: number;
 	/** Default mask character for mode="mask"; overridable per <Redact>/<RedactAuto>. */
 	maskChar: string;
+	/** Whether a same-tab getDisplayMedia() capture is currently active (see autoRedactOnScreenShare). */
+	isScreenSharing: boolean;
 }
 
 export const RedactContext: Context<RedactContextValue | null> =

@@ -4,7 +4,7 @@ import { type ReactElement, useContext, useRef } from "react";
 import type { CustomRedactRender, RedactMode } from "./context.js";
 import { RedactContext } from "./context.js";
 import { getBlurProps } from "./modes/blur.js";
-import { getMaskStyle, maskValue } from "./modes/mask.js";
+import { DEFAULT_MASK_CHAR, getMaskStyle, maskValue } from "./modes/mask.js";
 import { fakeFor } from "./utils/fake-data.js";
 
 export interface RedactProps {
@@ -84,7 +84,7 @@ export function Redact({
 	if (
 		isDev() &&
 		hasElementChild &&
-		(effectiveMode === "mask" || effectiveMode === "replace") &&
+		(effectiveMode === "mask" || effectiveMode === "replace" || effectiveMode === "secure") &&
 		!warnedRef.current
 	) {
 		warnedRef.current = true;
@@ -118,6 +118,19 @@ export function Redact({
 		const display = replacement ?? (text ? fakeFor(text) : "•••");
 		return (
 			<span data-redact aria-hidden>
+				{display}
+			</span>
+		);
+	}
+
+	if (effectiveMode === "secure") {
+		// DOM-clean: only ever render a computed fake/mask value through React, never `children`.
+		// Nothing recoverable is written to the DOM — the real value lives only in this render's
+		// `children` prop (in React/JS memory), not as a text node or data-* attribute.
+		const display =
+			replacement ?? (text ? fakeFor(text) : (maskChar ?? DEFAULT_MASK_CHAR).repeat(3));
+		return (
+			<span data-redact aria-hidden style={{ userSelect: "none" }}>
 				{display}
 			</span>
 		);

@@ -78,3 +78,50 @@ Use `<RedactAuto>` only where you need scanning; keep the rest of the page uncha
 ## Storybook
 
 Wrap your preview with `RedactProvider` and use the shortcut or a toolbar button wired to `useRedactMode().toggle` so you can capture redacted screenshots.
+
+## Auto-redact on screen share
+
+Turn on `autoRedactOnScreenShare` so an in-app "record a demo" button (or an embedded recording
+SDK that calls `getDisplayMedia`, like Loom's browser widget) automatically redacts the moment it
+starts capturing, and restores your prior state once it stops.
+
+```tsx
+// app/layout.tsx
+import { RedactProvider } from 'react-redact';
+
+<RedactProvider shortcut="mod+shift+x" autoRedactOnScreenShare>
+  <App />
+</RedactProvider>
+```
+
+```tsx
+// components/recording-indicator.tsx
+import { useRedactMode } from 'react-redact';
+
+export function RecordingIndicator() {
+  const { isScreenSharing } = useRedactMode();
+  if (!isScreenSharing) return null;
+  return <span className="badge">● Recording — PII redacted</span>;
+}
+```
+
+```tsx
+// components/record-demo-button.tsx — a typical in-app recorder using getDisplayMedia directly
+export function RecordDemoButton() {
+  async function startRecording() {
+    // react-redact's provider has already wrapped this — calling it enables redaction
+    // automatically, and it turns back off when you call track.stop() below.
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    // ...hand `stream` to your recorder (MediaRecorder, an upload pipeline, etc.)
+    // When done: stream.getVideoTracks().forEach((t) => t.stop());
+  }
+  return <button onClick={startRecording}>Record a demo</button>;
+}
+```
+
+> **Limitation:** this only detects captures your own page starts via `getDisplayMedia` — it has
+> no visibility into OS-level or other-app screen shares, such as picking your app's window/tab
+> from Zoom's, Meet's, or the OS's own screen-share picker. Those happen entirely outside the
+> browser tab and are invisible to any web page. Keep the keyboard shortcut (`⌘⇧X`) as your
+> primary safety net for that case — treat `autoRedactOnScreenShare` as an automatic bonus for the
+> in-app-recorder case, not a replacement for it.

@@ -20,13 +20,13 @@ Zero-dependency React components that visually hide PII — for demos, screensha
   <img src="https://raw.githubusercontent.com/btahir/react-redact/main/apps/docs/public/hero.gif" alt="react-redact demo" width="830" />
 </div>
 
-> **⚠️ Visual-only — not a security boundary.** react-redact hides PII on screen; it does not remove
-> it from the page. The real value is still sitting in the DOM (and, for `<RedactAuto>`, in a
-> `data-redact-original` attribute) and can be read via "View Source", browser dev tools, the
-> accessibility tree, or a few lines of JS — by you or anyone watching your screenshare over a
-> screen-recording pipeline that captures the DOM rather than pixels. Never use it in place of
-> real server-side redaction, and never rely on it to protect data from a technically curious
-> viewer. See [Security model](#security-model) for the full breakdown.
+> **⚠️ Visual-only — not a security boundary.** In `blur`/`mask`/`replace` modes, react-redact hides
+> PII on screen without removing it from the page — the real value is still sitting in the DOM
+> (and, for `<RedactAuto>`, in a `data-redact-original` attribute) and can be read via "View
+> Source", browser dev tools, the accessibility tree, or a few lines of JS. `mode="secure"` closes
+> that specific hole (see [Modes](#modes) / [Security model](#security-model)) — but no mode is a
+> substitute for real server-side redaction, and none of them protect data from a technically
+> curious viewer with access to your app's own state or network traffic.
 
 > **Blur works with zero CSS.** `mode="blur"` applies `filter: blur(...)` as an inline style, so it's visually safe even if you forget to import `react-redact/styles.css`. The stylesheet is entirely optional — import it only if you want the `react-redact-blur` class override hook or the opt-in `.react-redact-section` `content-visibility` helper.
 
@@ -43,7 +43,8 @@ You're about to share your screen. Your app is full of real customer data — em
 ## Features
 
 - **Instant toggle** — Keyboard shortcut (`⌘⇧X` / `Ctrl+Shift+X`), `useRedactMode()` hook, or `?redact=true` URL param
-- **Three modes** — Blur, mask (bullets), or replace with deterministic fake data
+- **Auto-redact on screen share** — opt in to `autoRedactOnScreenShare` and react-redact flips on the moment an in-app screen recording starts, and restores your prior state when it stops
+- **Four modes** — Blur, mask (bullets), replace with deterministic fake data, or secure (DOM-clean — see [Security model](#security-model))
 - **Manual wrapping** — `<Redact>` component for known PII fields
 - **Auto-detection** — `<RedactAuto>` scans subtrees for email, phone, SSN, credit card, IP (+ custom regex)
 - **Custom mode** — Bring your own render function for full control
@@ -112,6 +113,31 @@ import { RedactProvider, getInitialRedactEnabled } from "react-redact";
 `window`) — for an env-based default that also works server-side, resolve it in your own app code
 and pass the result as `enabled`.
 
+### Auto-redact on screen share
+
+Opt in with `autoRedactOnScreenShare` and react-redact wraps `navigator.mediaDevices.getDisplayMedia`
+for you: the moment a capture starts, redaction flips on; the moment it ends, redaction goes back
+to whatever it was before (so if you'd already turned it on manually, it stays on).
+
+```tsx
+<RedactProvider autoRedactOnScreenShare>
+  <App />
+</RedactProvider>
+```
+
+- Handles multiple concurrent captures (only restores once the *last* one ends), a cancelled
+  share picker (rejected promise — nothing toggles), and cleans up after itself on unmount.
+- Fires `onEnabledChange` exactly like the keyboard shortcut or `useRedactMode()` would.
+- `useRedactMode()` exposes `isScreenSharing` if you want to show your own "recording" indicator.
+
+> **⚠️ Read this before you rely on it for a demo.** This only detects captures *this page*
+> starts via `getDisplayMedia` — e.g. an in-app "record a demo" button, or an embedded recording
+> SDK like Loom's browser widget. It has **no way to see** OS-level or other-application screen
+> shares: picking your app's window/tab from Zoom's, Google Meet's, or your OS's own screen-share
+> picker happens entirely outside the browser tab and is invisible to any web page. For those,
+> the keyboard shortcut (`⌘⇧X`) remains your primary safety net — treat auto-redact-on-share as a
+> bonus for the in-app-recorder case, not a replacement for it.
+
 ## Modes
 
 <div align="center">
@@ -123,15 +149,42 @@ and pass the result as `enabled`.
 | **Blur** | Inline `filter: blur(...)` over original text (no CSS import required) | ░░░░░░░░░░░ |
 | **Mask** | Replaces each character with a repeated mask character | `•••••••••••` |
 | **Replace** | Deterministic fake data (same input → same output) | `jane.doe@example.com` |
+| **Secure** | Like replace, but guarantees the real value is never written to the DOM at all — see [Security model](#security-model) | `jane.doe@example.com` |
 
 ```tsx
 <RedactProvider mode="blur">   {/* default */}
 <RedactProvider mode="mask">
 <RedactProvider mode="replace">
+<RedactProvider mode="secure">
 
 {/* Or per-component: */}
 <Redact mode="replace">user@company.com</Redact>
+<Redact mode="secure">user@company.com</Redact>
 ```
+
+### Secure mode
+
+`mode="secure"` renders like `mode="replace"` (fake data when a pattern is recognized, otherwise
+the mask character) but with a stronger guarantee: **the real value never touches the DOM while
+redaction is enabled** — not as a text node, not as a `data-redact-original` attribute, nothing a
+"View Source", devtools Elements-panel inspection, DOM-scraping copy, or OCR-of-the-DOM pass can
+recover. `<RedactAuto>` keeps the original around only in an in-memory `WeakMap` (not the DOM) so
+it can restore it once you disable redaction.
+
+```tsx
+<RedactProvider mode="secure">
+  <RedactAuto patterns={['email', 'phone']}>
+    <CustomerDetails />
+  </RedactAuto>
+</RedactProvider>
+
+<Redact mode="secure">user@company.com</Redact>
+```
+
+Use `secure` instead of `blur`/`mask`/`replace` whenever the audience might poke at devtools —
+e.g. a public conference demo, a recorded walkthrough that gets uploaded somewhere, or any
+screenshare where you can't fully vouch for who's watching. See
+[Security model](#security-model) for exactly what is and isn't covered.
 
 Blur radius and mask character are configurable, at the provider (as defaults) or per-`<Redact>`/`<RedactAuto>` (as overrides):
 
@@ -182,10 +235,10 @@ Blur radius and mask character are configurable, at the provider (as defaults) o
 
 | Export | Type | Description |
 |--------|------|-------------|
-| `<RedactProvider>` | Component | Context provider — wraps your app, configures mode/shortcut/blurRadius/maskChar |
+| `<RedactProvider>` | Component | Context provider — wraps your app, configures mode/shortcut/blurRadius/maskChar/autoRedactOnScreenShare |
 | `<Redact>` | Component | Wraps known PII for manual redaction |
 | `<RedactAuto>` | Component | Scans a subtree and auto-wraps detected PII |
-| `useRedactMode()` | Hook | Returns `{ isRedacted, mode, enable, disable, toggle }` |
+| `useRedactMode()` | Hook | Returns `{ isRedacted, mode, enable, disable, toggle, isScreenSharing }` |
 | `useRedactPatterns()` | Hook | Read active patterns and add custom ones |
 | `getInitialRedactEnabled()` | Utility | Read `?redact=true` from URL for initial state |
 
@@ -228,8 +281,24 @@ What actually happens under the hood, mode by mode:
   recovers every auto-detected value even while masked.
 - **Replace** — same caveat as mask: manual `<Redact mode="replace">` doesn't emit the real value,
   but `<RedactAuto>`'s replace mode still writes it to `data-redact-original`.
+- **Secure** — closes exactly that hole. Whether you're using `<Redact mode="secure">` or
+  `<RedactAuto>` under `<RedactProvider mode="secure">`, the real value is never written to the DOM
+  in any form — no text node, no `data-redact-original`, nothing `document.querySelectorAll` or a
+  DOM-scraping copy/OCR pass can find. The only place it lives while redacted is a JS-side
+  `WeakMap` (for `<RedactAuto>`'s restore-on-disable) or the component's own `children` prop (for
+  `<Redact>`), neither of which touches serialized/rendered HTML.
 - **Custom** — entirely up to your `renderRedacted`/`customRender` function; react-redact doesn't
   enforce anything about what it outputs.
+
+Even with `mode="secure"`, these are **not** covered — no mode changes this:
+
+| Caveat | Why it's still true in secure mode |
+|--------|-------------------------------------|
+| Data already in the DOM before you enabled redaction | Secure mode only governs what it renders once it's on; toggling on doesn't retroactively scrub content that was visible before |
+| React state, props, and closures | The real value still lives in memory wherever your app already put it (a query result, a store, etc.) — secure mode hides the *rendered output*, not your app's data model |
+| Network responses | If your API returns the real PII to the client (even if react-redact hides it visually), a network tab / response inspector still sees it |
+| A user screen-recording the pixels themselves | No DOM-based mode can stop someone recording their own screen and reading it back frame-by-frame |
+| `<Redact>`'s `children` prop, while mounted | React itself still holds the real value as a prop during that render — it's just never serialized into `innerHTML`/`outerHTML` |
 
 Practical implications:
 
@@ -240,10 +309,15 @@ Practical implications:
   non-compliant screen reader could still announce the content — it's a convention, not a
   guarantee.
 - Screen recording/screenshare tools that capture the DOM (rather than a pixel-accurate screen
-  grab) can bypass CSS-based hiding entirely.
+  grab) can bypass CSS-based hiding entirely for blur/mask/replace — this is precisely the gap
+  `mode="secure"` closes.
+- `autoRedactOnScreenShare` only sees captures your own page starts via `getDisplayMedia` — it
+  cannot detect or react to OS-level/other-app screen shares. See
+  [Auto-redact on screen share](#auto-redact-on-screen-share) for the full limitation.
 - This library is aimed at demos, screenshares, and presentations where the audience isn't
   actively trying to extract the underlying data — not at protecting data from the person
-  looking at the screen.
+  looking at the screen. `mode="secure"` raises the bar (a casual devtools poke won't work) but
+  is still not a substitute for server-side redaction of anything genuinely sensitive.
 
 ## Documentation
 

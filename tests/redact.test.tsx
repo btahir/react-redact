@@ -108,6 +108,59 @@ describe("Redact", () => {
 		expect(span?.textContent).toBe("*****");
 	});
 
+	describe("secure mode", () => {
+		it("renders deterministic fake data instead of the real value", () => {
+			renderWithProvider(<Redact mode="secure">secret@email.com</Redact>, true);
+			const span = document.querySelector("[data-redact]");
+			expect(span?.textContent).not.toBe("secret@email.com");
+			expect(span?.textContent).not.toBe("");
+		});
+
+		it("never puts the real value anywhere in the DOM while enabled", () => {
+			renderWithProvider(<Redact mode="secure">secret@email.com</Redact>, true);
+			expect(document.documentElement.outerHTML).not.toContain("secret@email.com");
+		});
+
+		it("restores the real value once redaction is disabled", () => {
+			const { rerender } = render(
+				<RedactProvider enabled mode="secure">
+					<Redact mode="secure">secret@email.com</Redact>
+				</RedactProvider>,
+			);
+			expect(document.documentElement.outerHTML).not.toContain("secret@email.com");
+
+			rerender(
+				<RedactProvider enabled={false} mode="secure">
+					<Redact mode="secure">secret@email.com</Redact>
+				</RedactProvider>,
+			);
+			expect(screen.getByText("secret@email.com")).toBeInTheDocument();
+		});
+
+		it("respects the replacement prop", () => {
+			renderWithProvider(
+				<Redact mode="secure" replacement="HIDDEN">
+					secret@email.com
+				</Redact>,
+				true,
+			);
+			expect(document.querySelector("[data-redact]")?.textContent).toBe("HIDDEN");
+		});
+
+		it("falls back to the configurable mask character for non-text children", () => {
+			vi.spyOn(console, "warn").mockImplementation(() => {});
+			renderWithProvider(
+				<Redact mode="secure" maskChar="*">
+					<b>secret</b>
+				</Redact>,
+				true,
+			);
+			const span = document.querySelector("[data-redact]");
+			expect(span?.textContent).toBe("***");
+			vi.restoreAllMocks();
+		});
+	});
+
 	describe("dev warning for non-text children", () => {
 		const originalEnv = process.env.NODE_ENV;
 
@@ -121,6 +174,19 @@ describe("Redact", () => {
 			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 			renderWithProvider(
 				<Redact mode="mask">
+					<b>secret</b>
+				</Redact>,
+				true,
+			);
+			expect(warn).toHaveBeenCalledTimes(1);
+			expect(warn.mock.calls[0][0]).toContain("non-text children");
+		});
+
+		it("warns in secure mode when children include a React element", () => {
+			process.env.NODE_ENV = "development";
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			renderWithProvider(
+				<Redact mode="secure">
 					<b>secret</b>
 				</Redact>,
 				true,

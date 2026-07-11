@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Redact } from "../src/redact.jsx";
 import { RedactProvider } from "../src/redact-provider.js";
 import { useRedactMode } from "../src/use-redact-mode.js";
@@ -134,6 +135,257 @@ describe("RedactProvider", () => {
 				</RedactProvider>,
 			);
 			expect(onEnabledChange).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("autoRedactOnScreenShare", () => {
+		function createFakeTrack() {
+			const target = new EventTarget();
+			return {
+				addEventListener: target.addEventListener.bind(target),
+				end() {
+					target.dispatchEvent(new Event("ended"));
+				},
+			};
+		}
+
+		function createFakeStream(tracks: ReturnType<typeof createFakeTrack>[]) {
+			return { getVideoTracks: () => tracks };
+		}
+
+		function installMediaDevices(getDisplayMedia: (...args: unknown[]) => Promise<unknown>) {
+			Object.defineProperty(navigator, "mediaDevices", {
+				value: { getDisplayMedia },
+				configurable: true,
+				writable: true,
+			});
+		}
+
+		afterEach(() => {
+			Object.defineProperty(navigator, "mediaDevices", {
+				value: undefined,
+				configurable: true,
+				writable: true,
+			});
+		});
+
+		function StatusDisplay() {
+			const { isRedacted, isScreenSharing, enable } = useRedactMode();
+			return (
+				<div>
+					<span data-testid="status">{isRedacted ? "redacted" : "visible"}</span>
+					<span data-testid="sharing">{isScreenSharing ? "sharing" : "idle"}</span>
+					<button type="button" onClick={enable}>
+						manual-enable
+					</button>
+				</div>
+			);
+		}
+
+		it("enables redaction when a capture starts and restores prior state when it ends", async () => {
+			const track = createFakeTrack();
+			installMediaDevices(async () => createFakeStream([track]));
+
+			render(
+				<RedactProvider autoRedactOnScreenShare>
+					<StatusDisplay />
+				</RedactProvider>,
+			);
+			expect(screen.getByTestId("status")).toHaveTextContent("visible");
+			expect(screen.getByTestId("sharing")).toHaveTextContent("idle");
+
+			await act(async () => {
+				await navigator.mediaDevices.getDisplayMedia();
+			});
+			expect(screen.getByTestId("status")).toHaveTextContent("redacted");
+			expect(screen.getByTestId("sharing")).toHaveTextContent("sharing");
+
+			act(() => {
+				track.end();
+			});
+			expect(screen.getByTestId("status")).toHaveTextContent("visible");
+			expect(screen.getByTestId("sharing")).toHaveTextContent("idle");
+		});
+
+		it("keeps redaction on after the share ends if it was manually enabled beforehand", async () => {
+			const track = createFakeTrack();
+			installMediaDevices(async () => createFakeStream([track]));
+
+			render(
+				<RedactProvider autoRedactOnScreenShare>
+					<StatusDisplay />
+				</RedactProvider>,
+			);
+			fireEvent.click(screen.getByRole("button", { name: "manual-enable" }));
+			expect(screen.getByTestId("status")).toHaveTextContent("redacted");
+
+			await act(async () => {
+				await navigator.mediaDevices.getDisplayMedia();
+			});
+			expect(screen.getByTestId("status")).toHaveTextContent("redacted");
+
+			act(() => {
+				track.end();
+			});
+			// Was manually on before the share started — stays on after it ends.
+			expect(screen.getByTestId("status")).toHaveTextContent("redacted");
+		});
+
+		it("does not toggle when the user cancels the share picker", async () => {
+			installMediaDevices(async () => {
+				throw new DOMException("cancel", "NotAllowedError");
+			});
+
+			render(
+				<RedactProvider autoRedactOnScreenShare>
+					<StatusDisplay />
+				</RedactProvider>,
+			);
+
+			await act(async () => {
+				await expect(navigator.mediaDevices.getDisplayMedia()).rejects.toThrow();
+			});
+			expect(screen.getByTestId("status")).toHaveTextContent("visible");
+			expect(screen.getByTestId("sharing")).toHaveTextContent("idle");
+		});
+
+		it("only restores once all concurrent streams end", async () => {
+			const trackA = createFakeTrack();
+			const trackB = createFakeTrack();
+			let call = 0;
+			const streams = [createFakeStream([trackA]), createFakeStream([trackB])];
+			installMediaDevices(async () => streams[call++]);
+
+			render(
+				<RedactProvider autoRedactOnScreenShare>
+					<StatusDisplay />
+				</RedactProvider>,
+			);
+
+			await act(async () => {
+				await navigator.mediaDevices.getDisplayMedia();
+			});
+			await act(async () => {
+				await navigator.mediaDevices.getDisplayMedia();
+			});
+			expect(screen.getByTestId("status")).toHaveTextContent("redacted");
+
+			act(() => {
+				trackA.end();
+			});
+			expect(screen.getByTestId("status")).toHaveTextContent("redacted");
+
+			act(() => {
+				trackB.end();
+			});
+			expect(screen.getByTestId("status")).toHaveTextContent("visible");
+		});
+
+		it("fires onEnabledChange the same as any other internally-driven toggle", async () => {
+			const onEnabledChange = vi.fn();
+			const track = createFakeTrack();
+			installMediaDevices(async () => createFakeStream([track]));
+
+			render(
+				<RedactProvider autoRedactOnScreenShare onEnabledChange={onEnabledChange}>
+					<StatusDisplay />
+				</RedactProvider>,
+			);
+
+			await act(async () => {
+				await navigator.mediaDevices.getDisplayMedia();
+			});
+			expect(onEnabledChange).toHaveBeenCalledWith(true);
+
+			act(() => {
+				track.end();
+			});
+			expect(onEnabledChange).toHaveBeenLastCalledWith(false);
+		});
+
+		it("restores the original getDisplayMedia on unmount", () => {
+			const original = async () => createFakeStream([createFakeTrack()]);
+			installMediaDevices(original);
+
+			const { unmount } = render(
+				<RedactProvider autoRedactOnScreenShare>
+					<StatusDisplay />
+				</RedactProvider>,
+			);
+			expect(navigator.mediaDevices.getDisplayMedia).not.toBe(original);
+
+			unmount();
+			expect(navigator.mediaDevices.getDisplayMedia).toBe(original);
+		});
+
+		it("does not patch getDisplayMedia when the prop is false (default)", () => {
+			const original = async () => createFakeStream([createFakeTrack()]);
+			installMediaDevices(original);
+
+			render(
+				<RedactProvider>
+					<StatusDisplay />
+				</RedactProvider>,
+			);
+			expect(navigator.mediaDevices.getDisplayMedia).toBe(original);
+		});
+
+		it("does not lose track of an in-progress capture when the consumer passes a fresh onEnabledChange identity every render", async () => {
+			// Regression test: a controlled consumer whose `onEnabledChange` is a plain inline arrow
+			// function (instead of a bare, stable state setter) gets a new `onEnabledChange` — and
+			// therefore a new `setEnabled` — on every re-render. Firing `onEnabledChange` (from
+			// onStart below) triggers exactly that: a parent re-render with a fresh callback. Before
+			// the fix, that re-render tore down and re-created the screen-share watcher mid-capture,
+			// resetting its internal stream count and falsely reporting "idle" while still sharing.
+			const trackA = createFakeTrack();
+			const trackB = createFakeTrack();
+			let call = 0;
+			const streams = [createFakeStream([trackA]), createFakeStream([trackB])];
+			installMediaDevices(async () => streams[call++]);
+
+			function App() {
+				const [enabled, setEnabled] = useState(false);
+				return (
+					<RedactProvider
+						autoRedactOnScreenShare
+						enabled={enabled}
+						onEnabledChange={(v: boolean) => setEnabled(v)}
+					>
+						<StatusDisplay />
+					</RedactProvider>
+				);
+			}
+
+			render(<App />);
+
+			await act(async () => {
+				await navigator.mediaDevices.getDisplayMedia();
+			});
+			// Must still report "sharing" immediately after the capture starts, even though the
+			// onStart -> onEnabledChange -> setState round trip just forced a parent re-render.
+			expect(screen.getByTestId("sharing")).toHaveTextContent("sharing");
+			expect(screen.getByTestId("status")).toHaveTextContent("redacted");
+
+			// A second concurrent capture starts. If the watcher had been silently re-patched above,
+			// this would look like the *first* concurrent stream to the new instance.
+			await act(async () => {
+				await navigator.mediaDevices.getDisplayMedia();
+			});
+			expect(screen.getByTestId("sharing")).toHaveTextContent("sharing");
+
+			// Ending the second stream must NOT restore/idle while the first is still active.
+			act(() => {
+				trackB.end();
+			});
+			expect(screen.getByTestId("sharing")).toHaveTextContent("sharing");
+			expect(screen.getByTestId("status")).toHaveTextContent("redacted");
+
+			// Only once the first (real, original) stream also ends does it fully idle out.
+			act(() => {
+				trackA.end();
+			});
+			expect(screen.getByTestId("sharing")).toHaveTextContent("idle");
+			expect(screen.getByTestId("status")).toHaveTextContent("visible");
 		});
 	});
 });

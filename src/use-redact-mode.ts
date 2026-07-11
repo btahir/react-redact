@@ -8,11 +8,14 @@ export function useRedactMode(): {
 	enable: () => void;
 	disable: () => void;
 	toggle: () => void;
+	/** Whether a same-tab getDisplayMedia() capture is active (see RedactProvider's autoRedactOnScreenShare). */
+	isScreenSharing: boolean;
 } {
 	const ctx = useContext(RedactContext);
 	const enabled = ctx?.enabled ?? false;
 	const mode = ctx?.mode ?? "blur";
 	const setEnabled = ctx?.setEnabled;
+	const isScreenSharing = ctx?.isScreenSharing ?? false;
 
 	const enable = useCallback(() => setEnabled?.(true), [setEnabled]);
 	const disable = useCallback(() => setEnabled?.(false), [setEnabled]);
@@ -24,5 +27,6 @@ export function useRedactMode(): {
 		enable,
 		disable,
 		toggle,
+		isScreenSharing,
 	};
 }

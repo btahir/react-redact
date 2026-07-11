@@ -5,7 +5,7 @@ description: Install react-redact and add demo-safe redaction to your React app 
 
 # Getting Started
 
-**react-redact** lets you visually hide PII in your UI with a single keyboard shortcut. It's designed for demos, screenshares, and presentations — not as a security product. Data stays in the DOM (readable via dev tools or view-source); only the display changes. See [Security model](#security-model) below for the full breakdown.
+**react-redact** lets you visually hide PII in your UI with a single keyboard shortcut. It's designed for demos, screenshares, and presentations — not as a security product. In `blur`/`mask`/`replace` modes, data stays in the DOM (readable via dev tools or view-source); only the display changes. `mode="secure"` closes that specific hole — see [Security model](#security-model) below for the full breakdown.
 
 ## Install
 
@@ -85,8 +85,9 @@ import { RedactProvider, getInitialRedactEnabled } from 'react-redact';
 
 ## Security model
 
-react-redact is **visual-only**. It hides PII on screen; it does not remove it from the page, encrypt
-it, or restrict access to it.
+react-redact is **visual-only** in `blur`/`mask`/`replace` modes. It hides PII on screen; it does
+not remove it from the page, encrypt it, or restrict access to it. `mode="secure"` is the
+exception — see below.
 
 - **Blur** renders the real text into the DOM and layers `filter: blur(...)` + `user-select: none`
   on top as styling. Disabling the filter (dev tools, view-source, a screenshot tool that renders
@@ -95,18 +96,32 @@ it, or restrict access to it.
   **`<RedactAuto>` always stores the original matched text in a `data-redact-original` attribute,
   regardless of mode** — including mask and replace — so it can restore the page when redaction is
   toggled off. That attribute is inspectable DOM content.
-- Treat anything behind `<Redact>`/`<RedactAuto>` as if it were still visible in the page source,
+- **Secure** — `mode="secure"` guarantees the real value is never written to the DOM at all while
+  redaction is enabled: no text node, no `data-redact-original` attribute, nothing recoverable via
+  devtools, view-source, or a DOM-scraping copy/OCR pass. `<RedactAuto>` keeps the original in an
+  in-memory `WeakMap` (not the DOM) purely so it can restore the page on disable; `<Redact>` simply
+  never renders `children` while enabled. See [Modes → Secure](/docs/modes#secure) for details.
+- Even in secure mode, this is **not** covered: data already in the DOM before you enabled
+  redaction, React state/props/closures holding the real value, network responses that included
+  it, or someone recording their own screen pixel-by-pixel. Secure mode hides *rendered output*
+  from DOM inspection — it doesn't erase your app's data model or the network traffic that
+  populated it.
+- Treat anything behind `blur`/`mask`/`replace` as if it were still visible in the page source,
   because it is. Real secrets (API keys, tokens, passwords) don't belong behind this library —
-  use a secrets manager instead.
+  use a secrets manager instead, regardless of mode.
+- `autoRedactOnScreenShare` only detects captures your own page starts via `getDisplayMedia` — it
+  has no visibility into OS-level or other-app screen shares (e.g. picking your tab from Zoom's or
+  Meet's own picker). Keep the keyboard shortcut as your primary safety net for those. See the
+  [screen-share recipe](/docs/recipes#auto-redact-on-screen-share).
 
 Use react-redact for demos and screenshares where the audience isn't actively trying to extract
 the underlying data, not as a substitute for server-side redaction or access control.
 
 ## Next steps
 
-- [Redact component](/docs/components/redact) — manual redaction with blur, mask, or replace
+- [Redact component](/docs/components/redact) — manual redaction with blur, mask, replace, or secure
 - [RedactAuto](/docs/components/redact-auto) — auto-detect and wrap PII in a subtree
-- [Provider](/docs/components/provider) — global config and keyboard shortcut
-- [Modes](/docs/modes) — blur, mask, replace, custom
+- [Provider](/docs/components/provider) — global config, keyboard shortcut, screen-share auto-redact
+- [Modes](/docs/modes) — blur, mask, replace, secure, custom
 - [Patterns](/docs/patterns) — built-in PII patterns and custom regex
-- [Recipes](/docs/recipes) — common integration patterns
+- [Recipes](/docs/recipes) — common integration patterns, including screen-share auto-redact

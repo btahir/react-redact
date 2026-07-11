@@ -15,6 +15,7 @@ import { Redact } from 'react-redact';
 <Redact>user@company.com</Redact>
 <Redact mode="mask">4111 1111 1111 1111</Redact>
 <Redact mode="replace" replacement="Jane Smith">John Doe</Redact>
+<Redact mode="secure">user@company.com</Redact>
 <Redact blurRadius={10}>user@company.com</Redact>
 <Redact mode="mask" maskChar="#">123-45-6789</Redact>
 ```
@@ -24,8 +25,8 @@ import { Redact } from 'react-redact';
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `children` | `ReactNode` | — | Content to redact |
-| `mode` | `'blur' \| 'mask' \| 'replace' \| 'custom'` | from context | How to display when redacted |
-| `replacement` | `string` | — | For `mode="replace"`: custom replacement text |
+| `mode` | `'blur' \| 'mask' \| 'replace' \| 'secure' \| 'custom'` | from context | How to display when redacted |
+| `replacement` | `string` | — | For `mode="replace"`/`mode="secure"`: custom replacement text |
 | `renderRedacted` | `(props: { children, text }) => ReactNode` | — | For `mode="custom"`: your render function. Overrides provider `customRender`. |
 | `blurRadius` | `number` | from context (`6`) | Overrides the provider's default blur radius (px) for this instance |
 | `maskChar` | `string` | from context (`'•'`) | Overrides the provider's default mask character for this instance |
@@ -35,10 +36,13 @@ import { Redact } from 'react-redact';
 - **blur** — `filter: blur(<blurRadius>px)` (default `6`); original text remains in DOM.
 - **mask** — Repeated `maskChar` (default `•`) matching character length (`ch` units).
 - **replace** — Swap with `replacement` prop or deterministic fake data (when `children` is a string).
+- **secure** — Same display logic as replace, but with a stronger guarantee: `children` is never
+  rendered while enabled, so the real value never becomes a DOM text node. See
+  [Modes → Secure](/docs/modes#secure).
 - **custom** — Use `renderRedacted` (or provider `customRender`). Your node should have `data-redact` and `aria-hidden`.
 
 When redact mode is off, children render as-is with no wrapper.
 
-> Mask/replace need plain text to compute a bullet count or fake value. Passing a React element
-> (rather than a string) as `children` falls back to a fixed-length placeholder and logs a
-> dev-only console warning — use `mode="blur"` or `mode="custom"` for non-text children.
+> Mask/replace/secure need plain text to compute a bullet count or fake value. Passing a React
+> element (rather than a string) as `children` falls back to a fixed-length placeholder and logs
+> a dev-only console warning — use `mode="blur"` or `mode="custom"` for non-text children.

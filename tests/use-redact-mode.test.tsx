@@ -42,4 +42,14 @@ describe("useRedactMode", () => {
 		act(() => result.current.toggle());
 		expect(result.current.isRedacted).toBe(false);
 	});
+
+	it("returns isScreenSharing false when autoRedactOnScreenShare is not set", () => {
+		const { result } = renderHook(() => useRedactMode(), { wrapper });
+		expect(result.current.isScreenSharing).toBe(false);
+	});
+
+	it("returns isScreenSharing false outside a provider", () => {
+		const { result } = renderHook(() => useRedactMode());
+		expect(result.current.isScreenSharing).toBe(false);
+	});
 });

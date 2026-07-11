@@ -148,6 +148,118 @@ describe("RedactAuto", () => {
 		expect(after).toBe(before);
 	});
 
+	describe("secure mode", () => {
+		it("replaces PII with fake data and never writes data-redact-original", () => {
+			const { container } = render(
+				<RedactProvider enabled mode="secure">
+					<RedactAuto patterns={["email"]}>
+						<span>Contact: user@company.com</span>
+					</RedactAuto>
+				</RedactProvider>,
+			);
+			const redact = container.querySelector("[data-redact]");
+			expect(redact).toBeTruthy();
+			expect(redact?.textContent).not.toBe("user@company.com");
+			expect(redact).not.toHaveAttribute("data-redact-original");
+		});
+
+		it("never puts the real value anywhere in the DOM while enabled", () => {
+			render(
+				<RedactProvider enabled mode="secure">
+					<RedactAuto patterns={["email"]}>
+						<span>Contact: user@company.com</span>
+					</RedactAuto>
+				</RedactProvider>,
+			);
+			expect(document.documentElement.outerHTML).not.toContain("user@company.com");
+		});
+
+		it("falls back to the configurable mask character for hint-less customPatterns matches", () => {
+			const { container } = render(
+				<RedactProvider enabled mode="secure" maskChar="*">
+					<RedactAuto customPatterns={[/ORDER-\d{6}/g]}>
+						<span>Order: ORDER-123456</span>
+					</RedactAuto>
+				</RedactProvider>,
+			);
+			const redact = container.querySelector("[data-redact]");
+			expect(redact?.textContent).toBe("************");
+		});
+
+		it("restores the original text when disabled", () => {
+			const ui = (enabled: boolean) => (
+				<RedactProvider enabled={enabled} mode="secure">
+					<RedactAuto patterns={["email"]}>
+						<span>Contact: user@company.com</span>
+					</RedactAuto>
+				</RedactProvider>
+			);
+
+			const { container, rerender } = render(ui(true));
+			expect(container.querySelector("[data-redact]")).toBeTruthy();
+			expect(container.textContent).not.toContain("user@company.com");
+			expect(document.documentElement.outerHTML).not.toContain("user@company.com");
+
+			rerender(ui(false));
+			expect(container.querySelector("[data-redact]")).toBeNull();
+			expect(container.textContent).toContain("user@company.com");
+		});
+
+		it("restores multiple secure spans in one text node byte-for-byte, including surrounding whitespace/punctuation", () => {
+			// Regression test for the WeakMap keying: each <span> created for a match must get
+			// its own independent entry (keyed by the exact element instance), so restoring N
+			// secure spans in the same text node doesn't cross-wire or drop any of their
+			// original values. Exercises exact reconstruction (not just "contains"), since
+			// wrapMatchesInTextNode splits the text node into (before, span, between, span,
+			// after) fragments that restoreAutoRedactions + root.normalize() must reassemble.
+			const original = "Reach me at user@company.com or backup@company.com, thanks!";
+			const ui = (enabled: boolean) => (
+				<RedactProvider enabled={enabled} mode="secure">
+					<RedactAuto patterns={["email"]}>
+						<span>{original}</span>
+					</RedactAuto>
+				</RedactProvider>
+			);
+
+			const { container, rerender } = render(ui(true));
+			const spans = container.querySelectorAll("[data-redact]");
+			expect(spans).toHaveLength(2);
+			expect(container.textContent).not.toContain("user@company.com");
+			expect(container.textContent).not.toContain("backup@company.com");
+
+			rerender(ui(false));
+			expect(container.querySelector("[data-redact]")).toBeNull();
+			expect(container.querySelector("span")?.textContent).toBe(original);
+		});
+
+		it("does not leak the original value back in through the MutationObserver rescan path", async () => {
+			vi.useFakeTimers();
+			const ui = (value: string) => (
+				<RedactProvider enabled mode="secure">
+					<RedactAuto patterns={["email"]}>
+						<span>{value}</span>
+					</RedactAuto>
+				</RedactProvider>
+			);
+
+			const { container, rerender } = render(ui("Contact: user@company.com"));
+			expect(document.documentElement.outerHTML).not.toContain("user@company.com");
+
+			rerender(ui("Contact: next@company.com"));
+			await act(async () => {
+				await Promise.resolve();
+			});
+			await act(async () => {
+				vi.advanceTimersByTime(120);
+			});
+
+			expect(document.documentElement.outerHTML).not.toContain("next@company.com");
+			expect(document.documentElement.outerHTML).not.toContain("user@company.com");
+			expect(container.querySelector("[data-redact]")).not.toHaveAttribute("data-redact-original");
+			vi.useRealTimers();
+		});
+	});
+
 	it("still reacts to a genuine pattern list change", () => {
 		const ui = (patterns: ("email" | "phone")[]) => (
 			<RedactProvider enabled>

@@ -19,6 +19,7 @@ import 'react-redact/styles.css'; // optional — see note below
   enabled={false}
   autoDetect={['email', 'phone']}
   customPatterns={[/ACME-\d{6}/g]}
+  autoRedactOnScreenShare
 >
   <App />
 </RedactProvider>
@@ -29,16 +30,33 @@ import 'react-redact/styles.css'; // optional — see note below
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `children` | `ReactNode` | — | App or subtree |
-| `mode` | `'blur' \| 'mask' \| 'replace' \| 'custom'` | `'blur'` | Default redaction style |
+| `mode` | `'blur' \| 'mask' \| 'replace' \| 'secure' \| 'custom'` | `'blur'` | Default redaction style |
 | `shortcut` | `string` | `'mod+shift+x'` | Keyboard shortcut; `mod` = ⌘/Ctrl |
 | `enabled` | `boolean` | `false` | Initial (uncontrolled) or controlled redact state |
-| `onEnabledChange` | `(enabled: boolean) => void` | — | Called on internally-driven changes (shortcut, `useRedactMode()`) — required for controlled usage |
+| `onEnabledChange` | `(enabled: boolean) => void` | — | Called on internally-driven changes (shortcut, `useRedactMode()`, screen-share auto-toggle) — required for controlled usage |
 | `autoDetect` | `false \| BuiltInPatternName[]` | `false` | Pattern names for context (e.g. useRedactPatterns) |
 | `customPatterns` | `RegExp[]` | — | Extra patterns for context |
 | `customRender` | `(props: { children, text }) => ReactNode` | — | Default renderer for `<Redact mode="custom">` when no `renderRedacted` |
 | `blurRadius` | `number` | `6` | Default blur radius (px) for `mode="blur"`; overridable per `<Redact>`/`<RedactAuto>` |
-| `maskChar` | `string` | `'•'` | Default mask character for `mode="mask"`; overridable per `<Redact>`/`<RedactAuto>` |
+| `maskChar` | `string` | `'•'` | Default mask character for `mode="mask"`/`mode="secure"`; overridable per `<Redact>`/`<RedactAuto>` |
+| `autoRedactOnScreenShare` | `boolean` | `false` | Auto-enable redaction while a same-tab `getDisplayMedia()` capture is active; restores the prior state after it ends. See [Screen-share recipe](/docs/recipes#auto-redact-on-screen-share) |
 
 `<Redact>` and `<RedactAuto>` each own their own span's styling and DOM state — the provider does
 not reach into the document to toggle classes on `[data-redact]` elements. `mode="blur"` applies
 `filter: blur(...)` as an inline style, so it works even without importing `react-redact/styles.css`.
+
+### `autoRedactOnScreenShare`
+
+When `true`, the provider wraps `navigator.mediaDevices.getDisplayMedia` for the lifetime of the
+component (restoring the original function on unmount). Starting a capture through it enables
+redaction; ending the last active capture restores whatever `enabled` state was in effect right
+before the capture started. `useRedactMode()` exposes the live `isScreenSharing` flag if you want
+to surface your own "recording" indicator.
+
+**Limitation:** this can only see captures the page itself starts via `getDisplayMedia` — an
+in-app demo recorder, an embedded recording SDK (e.g. Loom's browser widget), a "record this page"
+button. It has no visibility into OS-level or other-application screen shares, such as picking
+your app's window/tab from Zoom's, Meet's, or the OS's own screen-share picker — those happen
+entirely outside the page and no web API can observe them. Keep the keyboard shortcut (or a manual
+toggle) as your primary mechanism for that case; treat this prop as an automatic bonus for the
+in-app-recorder case, not a replacement.

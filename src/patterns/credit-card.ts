@@ -1,5 +1,8 @@
-// 13-19 digits, optional spaces/dashes. We validate with Luhn to reduce false positives.
-const CARD_REGEX = /\b(?:\d[\d\s-]*){13,19}\b/g;
+// 13-19 digits, optional single space/dash between each digit. We validate with Luhn to
+// reduce false positives. Bounded to a fixed repetition count (one optional separator per
+// digit) rather than a nested `(?:\d[\d\s-]*){13,19}` quantifier, which is catastrophically
+// backtracking on long non-matching digit runs (ReDoS).
+const CARD_REGEX = /\b\d(?:[ -]?\d){12,18}\b/g;
 
 function luhnCheck(digits: string): boolean {
 	const s = digits.replace(/\D/g, "");

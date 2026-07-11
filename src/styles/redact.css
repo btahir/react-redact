@@ -1,4 +1,7 @@
-/* react-redact — blur + mask + accessibility */
+/* react-redact — blur + mask + accessibility
+ * Note: mode="blur" applies filter/user-select as inline styles at runtime, so importing this
+ * file is optional for correctness. Import it anyway to override via the .react-redact-blur
+ * class (e.g. a transition), or to use the .react-redact-section performance helper below. */
 [data-redact].react-redact-blur {
 	filter: blur(6px);
 	user-select: none;

@@ -11,4 +11,8 @@ describe("mask mode", () => {
 		const style = getMaskStyle("hello");
 		expect(style.width).toBe("5ch");
 	});
+
+	it("supports a custom mask character", () => {
+		expect(maskValue("hello", "*")).toBe("*****");
+	});
 });

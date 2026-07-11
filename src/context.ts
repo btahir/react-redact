@@ -15,11 +15,15 @@ export type CustomRedactRender = (props: CustomRedactRenderProps) => React.React
 export interface RedactContextValue {
 	enabled: boolean;
 	mode: RedactMode;
-	setEnabled: (enabled: boolean) => void;
+	setEnabled: (value: boolean | ((prev: boolean) => boolean)) => void;
 	autoDetect?: false | BuiltInPatternName[];
 	customPatterns?: RegExp[];
 	/** Default custom renderer when <Redact mode="custom"> doesn't provide renderRedacted. */
 	customRender?: CustomRedactRender;
+	/** Default blur radius (px) for mode="blur"; overridable per <Redact>/<RedactAuto>. */
+	blurRadius: number;
+	/** Default mask character for mode="mask"; overridable per <Redact>/<RedactAuto>. */
+	maskChar: string;
 }
 
 export const RedactContext: Context<RedactContextValue | null> =

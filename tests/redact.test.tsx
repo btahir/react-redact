@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Redact } from "../src/redact.jsx";
 import { RedactProvider } from "../src/redact-provider.js";
 
@@ -79,5 +79,97 @@ describe("Redact", () => {
 		const span = document.querySelector("[data-redact]");
 		expect(span).toHaveClass("react-redact-blur");
 		expect(span?.textContent).toBe("secret");
+	});
+
+	it("applies blur as an inline style so it works with zero CSS imported", () => {
+		renderWithProvider(<Redact>secret@email.com</Redact>, true);
+		const span = document.querySelector("[data-redact]") as HTMLElement;
+		// Inline style must carry the real filter — the className alone is not enough if
+		// consumers never import styles.css.
+		expect(span.style.filter).toBe("blur(6px)");
+		expect(span.style.userSelect).toBe("none");
+		expect(span).toHaveClass("react-redact-blur");
+	});
+
+	it("supports a custom blurRadius prop", () => {
+		renderWithProvider(<Redact blurRadius={20}>secret@email.com</Redact>, true);
+		const span = document.querySelector("[data-redact]") as HTMLElement;
+		expect(span.style.filter).toBe("blur(20px)");
+	});
+
+	it("supports a custom maskChar prop", () => {
+		renderWithProvider(
+			<Redact mode="mask" maskChar="*">
+				hello
+			</Redact>,
+			true,
+		);
+		const span = document.querySelector("[data-redact]");
+		expect(span?.textContent).toBe("*****");
+	});
+
+	describe("dev warning for non-text children", () => {
+		const originalEnv = process.env.NODE_ENV;
+
+		afterEach(() => {
+			process.env.NODE_ENV = originalEnv;
+			vi.restoreAllMocks();
+		});
+
+		it("warns in mask mode when children include a React element", () => {
+			process.env.NODE_ENV = "development";
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			renderWithProvider(
+				<Redact mode="mask">
+					<b>secret</b>
+				</Redact>,
+				true,
+			);
+			expect(warn).toHaveBeenCalledTimes(1);
+			expect(warn.mock.calls[0][0]).toContain("non-text children");
+		});
+
+		it("warns in replace mode when children include a React element", () => {
+			process.env.NODE_ENV = "development";
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			renderWithProvider(
+				<Redact mode="replace">
+					<b>secret</b>
+				</Redact>,
+				true,
+			);
+			expect(warn).toHaveBeenCalledTimes(1);
+		});
+
+		it("does not warn in production", () => {
+			process.env.NODE_ENV = "production";
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			renderWithProvider(
+				<Redact mode="mask">
+					<b>secret</b>
+				</Redact>,
+				true,
+			);
+			expect(warn).not.toHaveBeenCalled();
+		});
+
+		it("does not warn for plain string children", () => {
+			process.env.NODE_ENV = "development";
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			renderWithProvider(<Redact mode="mask">plain text</Redact>, true);
+			expect(warn).not.toHaveBeenCalled();
+		});
+
+		it("does not warn in blur mode even with element children", () => {
+			process.env.NODE_ENV = "development";
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			renderWithProvider(
+				<Redact mode="blur">
+					<b>secret</b>
+				</Redact>,
+				true,
+			);
+			expect(warn).not.toHaveBeenCalled();
+		});
 	});
 });

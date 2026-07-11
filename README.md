@@ -22,6 +22,8 @@ Zero-dependency React components that visually hide PII — for demos, screensha
 
 > **Visual-only:** This is a UI convenience tool for demos and screenshares. It does not remove data from the DOM.
 
+> **Blur works with zero CSS.** `mode="blur"` applies `filter: blur(...)` as an inline style, so it's visually safe even if you forget to import `react-redact/styles.css`. Import the stylesheet anyway for the `react-redact-blur` class override hook and the optional `.react-redact-section` `content-visibility` helper.
+
 <div align="center">
   <img src="https://raw.githubusercontent.com/btahir/react-redact/main/apps/docs/public/ph-1.png" alt="Before and after redaction" width="700" />
 </div>
@@ -85,8 +87,8 @@ Press **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) to toggle.
 
 | Mode | What it does | Example output |
 |------|-------------|----------------|
-| **Blur** | CSS blur filter over original text | ░░░░░░░░░░░ |
-| **Mask** | Replaces each character with a bullet | `•••••••••••` |
+| **Blur** | Inline `filter: blur(...)` over original text (no CSS import required) | ░░░░░░░░░░░ |
+| **Mask** | Replaces each character with a repeated mask character | `•••••••••••` |
 | **Replace** | Deterministic fake data (same input → same output) | `jane.doe@example.com` |
 
 ```tsx
@@ -97,6 +99,23 @@ Press **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) to toggle.
 {/* Or per-component: */}
 <Redact mode="replace">user@company.com</Redact>
 ```
+
+Blur radius and mask character are configurable, at the provider (as defaults) or per-`<Redact>`/`<RedactAuto>` (as overrides):
+
+```tsx
+<RedactProvider blurRadius={10} maskChar="*">
+  <App />
+</RedactProvider>
+
+{/* Override for one field: */}
+<Redact blurRadius={2}>user@company.com</Redact>
+<Redact mode="mask" maskChar="#">123-45-6789</Redact>
+```
+
+> **Note:** Mask/replace need real text to compute a bullet count or fake value. Passing a
+> React element (rather than a plain string) as `<Redact>` children falls back to a fixed-length
+> placeholder and logs a dev-only console warning — use `mode="blur"` or `mode="custom"` for
+> non-text children instead.
 
 ## Auto-Detection
 
@@ -115,20 +134,47 @@ Press **⌘⇧X** (Mac) or **Ctrl+Shift+X** (Windows/Linux) to toggle.
 <RedactAuto customPatterns={[/ORDER-\d{6}/g]}>
   <div>Order: ORDER-123456</div>
 </RedactAuto>
+
+{/* Change the wrapper element (default "div") so it doesn't break flex/grid layouts: */}
+<RedactAuto as="span">
+  <span>Inline PII in a flex row: user@company.com</span>
+</RedactAuto>
 ```
 
 **Built-in patterns:** `email` · `phone` · `ssn` · `credit-card` (Luhn-validated) · `ip`
+
+`<RedactAuto>` wraps its children in an element (`as`, default `"div"`) so it can scan and mutate the subtree — pass `as="span"` or another tag when the default `div` would break a flex/grid layout.
 
 ## API at a Glance
 
 | Export | Type | Description |
 |--------|------|-------------|
-| `<RedactProvider>` | Component | Context provider — wraps your app, configures mode/shortcut |
+| `<RedactProvider>` | Component | Context provider — wraps your app, configures mode/shortcut/blurRadius/maskChar |
 | `<Redact>` | Component | Wraps known PII for manual redaction |
 | `<RedactAuto>` | Component | Scans a subtree and auto-wraps detected PII |
-| `useRedactMode()` | Hook | Returns `{ isRedacted, toggle, enable, disable }` |
+| `useRedactMode()` | Hook | Returns `{ isRedacted, mode, toggle, enable, disable }` |
 | `useRedactPatterns()` | Hook | Read active patterns and add custom ones |
 | `getInitialRedactEnabled()` | Utility | Read `?redact=true` from URL for initial state |
+
+### Controlled vs. uncontrolled `enabled`
+
+By default `<RedactProvider>` is **uncontrolled** — it owns its own `enabled` state, flipped by the
+keyboard shortcut or `useRedactMode()`. To fully control it from your own state (e.g. to persist the
+preference), pass both `enabled` and `onEnabledChange`, mirroring a controlled `<input>`:
+
+```tsx
+function App() {
+  const [redacted, setRedacted] = useState(false);
+  return (
+    <RedactProvider enabled={redacted} onEnabledChange={setRedacted}>
+      <Dashboard />
+    </RedactProvider>
+  );
+}
+```
+
+`onEnabledChange` fires for every internally-driven change (keyboard shortcut, `useRedactMode()`);
+it is not called when `enabled` changes purely because you updated the prop yourself.
 
 ## Documentation
 

@@ -31,9 +31,14 @@ import 'react-redact/styles.css';
 | `children` | `ReactNode` | — | App or subtree |
 | `mode` | `'blur' \| 'mask' \| 'replace' \| 'custom'` | `'blur'` | Default redaction style |
 | `shortcut` | `string` | `'mod+shift+x'` | Keyboard shortcut; `mod` = ⌘/Ctrl |
-| `enabled` | `boolean` | `false` | Initial redact state |
+| `enabled` | `boolean` | `false` | Initial (uncontrolled) or controlled redact state |
+| `onEnabledChange` | `(enabled: boolean) => void` | — | Called on internally-driven changes (shortcut, `useRedactMode()`) — required for controlled usage |
 | `autoDetect` | `false \| BuiltInPatternName[]` | `false` | Pattern names for context (e.g. useRedactPatterns) |
 | `customPatterns` | `RegExp[]` | — | Extra patterns for context |
 | `customRender` | `(props: { children, text }) => ReactNode` | — | Default renderer for `<Redact mode="custom">` when no `renderRedacted` |
+| `blurRadius` | `number` | `6` | Default blur radius (px) for `mode="blur"`; overridable per `<Redact>`/`<RedactAuto>` |
+| `maskChar` | `string` | `'•'` | Default mask character for `mode="mask"`; overridable per `<Redact>`/`<RedactAuto>` |
 
-When `enabled` changes, the provider toggles the `react-redact-blur` class on all `[data-redact]` elements so auto-injected spans stay in sync.
+`<Redact>` and `<RedactAuto>` each own their own span's styling and DOM state — the provider does
+not reach into the document to toggle classes on `[data-redact]` elements. `mode="blur"` applies
+`filter: blur(...)` as an inline style, so it works even without importing `react-redact/styles.css`.

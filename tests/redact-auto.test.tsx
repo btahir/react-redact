@@ -98,7 +98,7 @@ describe("RedactAuto", () => {
 		expect(redact?.textContent).toBe("user@company.com");
 	});
 
-	it("re-scans mutated content via MutationObserver", () => {
+	it("re-scans mutated content via MutationObserver", async () => {
 		vi.useFakeTimers();
 		const ui = (value: string) => (
 			<RedactProvider enabled>
@@ -112,11 +112,55 @@ describe("RedactAuto", () => {
 		expect(container.querySelector("[data-redact]")?.textContent).toBe("user@company.com");
 
 		rerender(ui("Contact: next@company.com"));
-		act(() => {
+		// MutationObserver callbacks fire as a microtask; flush it before advancing the debounce timer.
+		await act(async () => {
+			await Promise.resolve();
+		});
+		await act(async () => {
 			vi.advanceTimersByTime(120);
 		});
 
 		expect(container.querySelector("[data-redact]")?.textContent).toBe("next@company.com");
 		vi.useRealTimers();
+	});
+
+	it("does not tear down and rescan when the parent re-renders with equivalent inline pattern arrays", () => {
+		// patterns/customPatterns are passed as fresh array literals on every call to ui(), as a
+		// consumer would typically write it inline in JSX. The effect should key off stable,
+		// serialized values instead of array identity, so re-rendering with equivalent content
+		// must not tear down and recreate the existing redact span.
+		const ui = () => (
+			<RedactProvider enabled>
+				<RedactAuto patterns={["email"]} customPatterns={[]}>
+					<span>Contact: user@company.com</span>
+				</RedactAuto>
+			</RedactProvider>
+		);
+
+		const { container, rerender } = render(ui());
+		const before = container.querySelector("[data-redact]");
+		expect(before).toBeTruthy();
+
+		rerender(ui());
+		const after = container.querySelector("[data-redact]");
+
+		// Same DOM node instance => the scan effect did not tear down and re-wrap.
+		expect(after).toBe(before);
+	});
+
+	it("still reacts to a genuine pattern list change", () => {
+		const ui = (patterns: ("email" | "phone")[]) => (
+			<RedactProvider enabled>
+				<RedactAuto patterns={patterns}>
+					<span>Contact: user@company.com or (555) 555-0123</span>
+				</RedactAuto>
+			</RedactProvider>
+		);
+
+		const { container, rerender } = render(ui(["email"]));
+		expect(container.querySelectorAll("[data-redact]")).toHaveLength(1);
+
+		rerender(ui(["email", "phone"]));
+		expect(container.querySelectorAll("[data-redact]")).toHaveLength(2);
 	});
 });

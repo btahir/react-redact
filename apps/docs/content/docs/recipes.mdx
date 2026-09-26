@@ -1,127 +1,43 @@
 ---
-title: Recipes
-description: Real-world usage patterns.
+title: Recipes and integration choices
+description: Use the same synthetic policy in Vite, Next.js, Storybook, MSW, and browser screenshots.
 ---
 
-# Recipes
+## Vite
 
-## Next.js admin panel
-
-Wrap the layout that contains sensitive data and add a demo toggle in the header.
-
-```tsx
-// app/layout.tsx
-import { RedactProvider } from 'react-redact';
-import 'react-redact/styles.css'; // optional — mode="blur" works without it via inline styles
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        <RedactProvider shortcut="mod+shift+x">
-          {children}
-        </RedactProvider>
-      </body>
-    </html>
-  );
-}
-
-// components/admin-header.tsx
-import { useRedactMode } from 'react-redact';
-
-export function AdminHeader() {
-  const { isRedacted, toggle } = useRedactMode();
-  return (
-    <header>
-      <button onClick={toggle} aria-pressed={isRedacted}>
-        {isRedacted ? 'Show real data' : 'Demo mode'}
-      </button>
-    </header>
-  );
-}
-```
-
-## SaaS dashboard demo mode
-
-Use URL param (`?redact=true`) or env to start in redacted state (e.g. permanent demo env). `getInitialRedactEnabled()` reads the URL; for env (e.g. `NEXT_PUBLIC_REDACT=true`) pass from your app so it works with SSR.
-
-```tsx
-import { RedactProvider, getInitialRedactEnabled } from 'react-redact';
-
-// URL only (client)
-<RedactProvider enabled={getInitialRedactEnabled()} mode="replace">
-  <Dashboard />
-</RedactProvider>
-
-// Next.js: URL or env (SSR-safe)
-const redactFromEnv = process.env.NEXT_PUBLIC_REDACT === 'true';
-<RedactProvider enabled={typeof window !== 'undefined' ? getInitialRedactEnabled() : redactFromEnv} mode="replace">
-  <Dashboard />
-</RedactProvider>
-```
-
-## Auto-detect in a single section
-
-Use `<RedactAuto>` only where you need scanning; keep the rest of the page unchanged.
-
-```tsx
-<RedactProvider>
-  <Sidebar />
-  <main>
-    <RedactAuto patterns={['email', 'phone', 'credit-card']}>
-      <CustomerDetails />
-    </RedactAuto>
-  </main>
-</RedactProvider>
-```
+The repository includes a runnable `examples/vite` workspace. It uses `DemoProvider`, registered fields, and the real Studio with a bounded root. Run `pnpm --filter react-redact-vite dev` after building the library.
 
 ## Storybook
 
-Wrap your preview with `RedactProvider` and use the shortcut or a toolbar button wired to `useRedactMode().toggle` so you can capture redacted screenshots.
-
-## Auto-redact on screen share
-
-Turn on `autoRedactOnScreenShare` so an in-app "record a demo" button (or an embedded recording
-SDK that calls `getDisplayMedia`, like Loom's browser widget) automatically redacts the moment it
-starts capturing, and restores your prior state once it stops.
+Use a stable document and entity per story. A decorator can wrap the story with `DemoProvider`; a component needing a record can call `createDemoRecord` before rendering. Keep the seed/reference date fixed so screenshot changes represent UI changes rather than a moving data fixture.
 
 ```tsx
-// app/layout.tsx
-import { RedactProvider } from 'react-redact';
-
-<RedactProvider shortcut="mod+shift+x" autoRedactOnScreenShare>
-  <App />
-</RedactProvider>
+import { createDemoDocument, createDemoRecord } from 'react-redact/data';
+const policy = createDemoDocument();
+export const CustomerExample = {
+  args: { customer: createDemoRecord(policy, 'demo-1') },
+};
 ```
 
-```tsx
-// components/recording-indicator.tsx
-import { useRedactMode } from 'react-redact';
+## Mock Service Worker
 
-export function RecordingIndicator() {
-  const { isScreenSharing } = useRedactMode();
-  if (!isScreenSharing) return null;
-  return <span className="badge">● Recording — PII redacted</span>;
-}
+Use the generated record in your existing MSW handler. No new mocking runtime is bundled with react-redact.
+
+```ts
+import { http, HttpResponse } from 'msw';
+import { createDemoDocument, createDemoRecord } from 'react-redact/data';
+const policy = createDemoDocument();
+export const handlers = [http.get('/api/customer', () =>
+  HttpResponse.json(createDemoRecord(policy, 'demo-1')),
+)];
 ```
 
-```tsx
-// components/record-demo-button.tsx — a typical in-app recorder using getDisplayMedia directly
-export function RecordDemoButton() {
-  async function startRecording() {
-    // react-redact's provider has already wrapped this — calling it enables redaction
-    // automatically, and it turns back off when you call track.stop() below.
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-    // ...hand `stream` to your recorder (MediaRecorder, an upload pipeline, etc.)
-    // When done: stream.getVideoTracks().forEach((t) => t.stop());
-  }
-  return <button onClick={startRecording}>Record a demo</button>;
-}
-```
+This is an integration recipe, not a separately bundled Storybook/MSW application. The executable Next.js and Vite examples live in the repository.
 
-> **Limitation:** this only detects captures your own page starts via `getDisplayMedia` — it has
-> no visibility into OS-level or other-app screen shares, such as picking your app's window/tab
-> from Zoom's, Meet's, or the OS's own screen-share picker. Those happen entirely outside the
-> browser tab and are invisible to any web page. Keep the keyboard shortcut (`⌘⇧X`) as your
-> primary safety net for that case — treat `autoRedactOnScreenShare` as an automatic bonus for the
-> in-app-recorder case, not a replacement for it.
+## Screenshots and recordings
+
+Use [preflight checks](/docs/preflight), visit each demonstrated state, then capture with your own Playwright or recording workflow. Prepare demo state before starting a screen share. The in-page capture watcher cannot detect other applications sharing your screen.
+
+## Component or extension?
+
+Choose react-redact when you own the React app and want repeatable semantic fields and coherent samples. A browser extension may suit one-off concealment on a site you cannot modify. A hosted demo-capture product can suit teams needing sharing/analytics workflows. This package provides neither an arbitrary-site extension nor a hosted demo service.

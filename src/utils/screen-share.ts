@@ -57,6 +57,8 @@ export function watchScreenShare({ onStart, onEnd }: ScreenShareCallbacks): Scre
 	const rawOriginal = mediaDevices.getDisplayMedia;
 	const original = rawOriginal.bind(mediaDevices);
 	let activeStreams = 0;
+	let disposed = false;
+	const cleanups = new Set<() => void>();
 
 	function handleStreamEnd() {
 		activeStreams = Math.max(0, activeStreams - 1);
@@ -68,14 +70,16 @@ export function watchScreenShare({ onStart, onEnd }: ScreenShareCallbacks): Scre
 		// react once a stream actually resolves, so cancellation never toggles anything.
 		const stream = (await original(...args)) as unknown as StreamLike;
 
+		if (disposed) return stream as unknown as MediaStream;
 		const wasIdle = activeStreams === 0;
 		activeStreams += 1;
 		if (wasIdle) onStart();
 
 		let settled = false;
 		const onTrackEnded = () => {
-			if (settled) return;
+			if (settled || disposed) return;
 			settled = true;
+			cleanup();
 			handleStreamEnd();
 		};
 
@@ -86,6 +90,13 @@ export function watchScreenShare({ onStart, onEnd }: ScreenShareCallbacks): Scre
 		// Fallback for streams that only expose an "inactive" event on the MediaStream itself.
 		stream.addEventListener?.("inactive", onTrackEnded);
 
+		function cleanup() {
+			for (const track of videoTracks) track.removeEventListener?.("ended", onTrackEnded);
+			stream.removeEventListener?.("inactive", onTrackEnded);
+			cleanups.delete(cleanup);
+		}
+		cleanups.add(cleanup);
+
 		return stream as unknown as MediaStream;
 	};
 
@@ -93,6 +104,9 @@ export function watchScreenShare({ onStart, onEnd }: ScreenShareCallbacks): Scre
 
 	return {
 		stop: () => {
+			disposed = true;
+			for (const cleanup of cleanups) cleanup();
+			cleanups.clear();
 			if (mediaDevices.getDisplayMedia === patched) {
 				mediaDevices.getDisplayMedia = rawOriginal;
 			}

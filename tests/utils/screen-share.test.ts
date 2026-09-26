@@ -110,6 +110,39 @@ describe("watchScreenShare", () => {
 		expect(navigator.mediaDevices.getDisplayMedia).toBe(original);
 	});
 
+	it("does not start observing a pending capture after stop", async () => {
+		let resolve!: (value: unknown) => void;
+		installMediaDevices(
+			() =>
+				new Promise((done) => {
+					resolve = done;
+				}),
+		);
+		const onStart = vi.fn();
+		const onEnd = vi.fn();
+		const watcher = watchScreenShare({ onStart, onEnd });
+		const capture = navigator.mediaDevices.getDisplayMedia();
+		watcher.stop();
+		const track = createFakeTrack();
+		resolve(createFakeStream([track]));
+		await capture;
+		track.end();
+		expect(onStart).not.toHaveBeenCalled();
+		expect(onEnd).not.toHaveBeenCalled();
+	});
+	it("detaches active capture listeners on repeated stop", async () => {
+		const track = createFakeTrack();
+		const remove = vi.spyOn(track, "removeEventListener");
+		installMediaDevices(async () => createFakeStream([track]));
+		const onEnd = vi.fn();
+		const watcher = watchScreenShare({ onStart: vi.fn(), onEnd });
+		await navigator.mediaDevices.getDisplayMedia();
+		watcher.stop();
+		watcher.stop();
+		track.end();
+		expect(remove).toHaveBeenCalledTimes(1);
+		expect(onEnd).not.toHaveBeenCalled();
+	});
 	it("is a no-op when navigator.mediaDevices is unavailable", () => {
 		Object.defineProperty(navigator, "mediaDevices", {
 			value: undefined,

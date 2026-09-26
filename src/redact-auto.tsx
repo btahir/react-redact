@@ -22,9 +22,8 @@ import { cancelScheduledScan, scanRoot, scheduleScan } from "./scanner.js";
 const DEFAULT_PATTERNS: BuiltInPatternName[] = ["email", "phone", "ssn", "credit-card", "ip"];
 const DEFAULT_CUSTOM_PATTERNS: RegExp[] = [];
 
-// Scan before the browser paints so raw PII never flashes on screen — critical for
-// mode="secure". useLayoutEffect warns during SSR, so fall back to useEffect there
-// (the server never paints, and the client layout effect re-runs the scan on hydration).
+// Best-effort post-render scanning. Server HTML and later mutations can contain
+// originals before this effect/observer runs. Use render-time fields for strict demos.
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export interface RedactAutoProps {
@@ -43,19 +42,15 @@ export interface RedactAutoProps {
 	as?: ElementType;
 }
 
-// Original text for mode="secure" spans, keyed by the span element itself. Never written to
-// the DOM as a data-redact-original attribute (unlike every other mode) — this is the only
-// place the real value is retrievable while secure mode is enabled, and only from JS memory,
-// not from anything visible to devtools' Elements panel, "View Source", or a DOM-scraping copy.
-const secureOriginals = new WeakMap<HTMLElement, string>();
+// Restoration values stay in memory in every mode; never serialize source values.
+const originals = new WeakMap<HTMLElement, string>();
 
 function restoreAutoRedactions(root: HTMLElement): void {
 	const nodes = root.querySelectorAll<HTMLElement>("[data-redact-auto]");
 	for (const node of nodes) {
-		const secureOriginal = secureOriginals.get(node);
-		const original =
-			secureOriginal ?? node.getAttribute("data-redact-original") ?? node.textContent ?? "";
-		if (secureOriginal !== undefined) secureOriginals.delete(node);
+		const secureOriginal = originals.get(node);
+		const original = secureOriginal ?? node.textContent ?? "";
+		if (secureOriginal !== undefined) originals.delete(node);
 		const parent = node.parentNode;
 		if (!parent) continue;
 		parent.replaceChild(document.createTextNode(original), node);
@@ -69,14 +64,17 @@ function restoreAutoRedactions(root: HTMLElement): void {
  */
 export function RedactAuto({
 	children,
-	patterns: patternNames = DEFAULT_PATTERNS,
-	customPatterns = DEFAULT_CUSTOM_PATTERNS,
+	patterns: propPatterns,
+	customPatterns: propCustomPatterns,
 	blurRadius: propBlurRadius,
 	maskChar: propMaskChar,
 	as = "div",
 }: RedactAutoProps): ReactElement {
 	const rootRef = useRef<HTMLElement>(null);
 	const ctx = useContext(RedactContext);
+	const patternNames =
+		propPatterns ?? (Array.isArray(ctx?.autoDetect) ? ctx.autoDetect : DEFAULT_PATTERNS);
+	const customPatterns = propCustomPatterns ?? ctx?.customPatterns ?? DEFAULT_CUSTOM_PATTERNS;
 	const blurRadius = propBlurRadius ?? ctx?.blurRadius;
 	const maskChar = propMaskChar ?? ctx?.maskChar;
 
@@ -95,15 +93,10 @@ export function RedactAuto({
 			span.setAttribute("data-redact-auto", "");
 			const mode = ctx?.mode ?? "blur";
 
-			// secure mode never writes the real value into the DOM (not even as an attribute) —
-			// stash it in the module-level WeakMap instead so it can still be restored on disable.
-			if (mode === "secure") {
-				secureOriginals.set(span, text);
-			} else {
-				span.setAttribute("data-redact-original", text);
-			}
+			originals.set(span, text);
 			if (hint) span.setAttribute("data-redact-hint", hint);
-			span.setAttribute("aria-hidden", "true");
+			span.setAttribute("role", "img");
+			span.setAttribute("aria-label", "Hidden demo field");
 
 			if (mode === "blur") {
 				span.textContent = text;

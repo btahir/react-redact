@@ -1,0 +1,37 @@
+---
+title: Consistent demo scenarios
+description: Generate coherent customer identities and explicit fields without needing production data.
+---
+
+## One document, every view
+
+A version-1 `DemoDocument` contains `name`, `seed`, `referenceDate`, and up to 200 field rules. Each field has a unique semantic `id`, a display `label`, a `kind`, a `behavior`, and a `required` flag. An optional `replacement` is explicitly authored synthetic text.
+
+Kinds: `name`, `email`, `company`, `phone`, `amount`, `date`, `id`, `ip`, `text`. Behaviors: `sample`, `mask`, `hide`. The seed and an opaque demo entity ID create a consistent name/email/company identity. Dates use the document's fixed reference date, rather than today's date.
+
+```ts
+import { createDemoDocument, createDemoRecord, serializeDocument, parseDocument } from 'react-redact/data';
+const policy = createDemoDocument();
+const customer = createDemoRecord(policy, 'demo-1');
+const saved = serializeDocument(policy);
+const restored = parseDocument(saved);
+```
+
+`createDemoRecord` produces only the declared keys. It takes no source customer record. The pure module has no React, DOM, or network dependency and can run in Server Components, Node scripts, or API mock handlers.
+
+## Registered React fields
+
+```tsx
+<DemoProvider document={policy}>
+  <DemoField id="customer.name" entity="demo-1" />
+  <DemoField id="customer.email" entity="demo-1" />
+</DemoProvider>
+```
+
+The field computes its sample during render, including SSR. Missing configuration fails closed with a placeholder. Outside the provider, any supplied children render normally. Prefer supplying no originals at all in dedicated demo environments.
+
+## Portable and reviewable
+
+`validateDocument` returns structured issues. Import/export reject unknown properties, duplicate IDs, invalid dates, excessive lengths, and unsupported versions. The JSON schema is published at `react-redact/schema.json`. A valid policy cannot contain an extra `original` property, but a human can still put private information in a label or authored replacement: review these fields before sharing.
+
+Document version 1 also identifies the generation algorithm: the same seed, entity key and policy retain their generated output within version 1. Intentional generator changes require an explicit version and migration policy. Pin the package version for screenshot baselines. Changing a seed intentionally changes identities. Values are illustrative and do not certify irreversible anonymization or identity validity.

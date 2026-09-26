@@ -17,6 +17,8 @@ export interface RedactProps {
 	blurRadius?: number;
 	/** Overrides the provider's default mask character for this instance. */
 	maskChar?: string;
+	/** Safe accessible label for hidden content; never put the original here. */
+	accessibleLabel?: string;
 }
 
 interface TextResult {
@@ -67,6 +69,7 @@ export function Redact({
 	renderRedacted,
 	blurRadius: propBlurRadius,
 	maskChar: propMaskChar,
+	accessibleLabel = "Hidden demo field",
 }: RedactProps): ReactElement {
 	const ctx = useContext(RedactContext);
 	const enabled = ctx?.enabled ?? false;
@@ -98,7 +101,13 @@ export function Redact({
 	if (effectiveMode === "blur") {
 		const props = getBlurProps(blurRadius);
 		return (
-			<span data-redact aria-hidden className={props.className} style={props.style}>
+			<span
+				data-redact
+				role="img"
+				aria-label={accessibleLabel}
+				className={props.className}
+				style={props.style}
+			>
 				{children}
 			</span>
 		);
@@ -108,7 +117,12 @@ export function Redact({
 		const display = text ? maskValue(text, maskChar) : (maskChar ?? "•").repeat(3);
 		const style = text ? getMaskStyle(text) : {};
 		return (
-			<span data-redact aria-hidden style={{ ...style, userSelect: "none" }}>
+			<span
+				data-redact
+				role="img"
+				aria-label={accessibleLabel}
+				style={{ ...style, userSelect: "none" }}
+			>
 				{display}
 			</span>
 		);
@@ -117,7 +131,7 @@ export function Redact({
 	if (effectiveMode === "replace") {
 		const display = replacement ?? (text ? fakeFor(text) : "•••");
 		return (
-			<span data-redact aria-hidden>
+			<span data-redact role="img" aria-label={accessibleLabel}>
 				{display}
 			</span>
 		);
@@ -130,7 +144,7 @@ export function Redact({
 		const display =
 			replacement ?? (text ? fakeFor(text) : (maskChar ?? DEFAULT_MASK_CHAR).repeat(3));
 		return (
-			<span data-redact aria-hidden style={{ userSelect: "none" }}>
+			<span data-redact role="img" aria-label={accessibleLabel} style={{ userSelect: "none" }}>
 				{display}
 			</span>
 		);
@@ -143,7 +157,13 @@ export function Redact({
 	}
 	const props = getBlurProps(blurRadius);
 	return (
-		<span data-redact aria-hidden className={props.className} style={props.style}>
+		<span
+			data-redact
+			role="img"
+			aria-label={accessibleLabel}
+			className={props.className}
+			style={props.style}
+		>
 			{children}
 		</span>
 	);

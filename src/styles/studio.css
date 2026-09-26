@@ -1,0 +1,350 @@
+.redact-studio {
+	--rs-ink: #20382e;
+	--rs-muted: #627369;
+	--rs-border: #dce4dc;
+	--rs-accent: #236a49;
+	color: var(--rs-ink);
+	background: #fffefa;
+	border: 1px solid var(--rs-border);
+	border-radius: 20px;
+	font:
+		14px / 1.5 ui-sans-serif,
+		system-ui,
+		sans-serif;
+	box-shadow: 0 18px 60px #173e2710;
+	overflow: hidden;
+	text-align: left;
+	max-width: 580px;
+	width: 100%;
+	box-sizing: border-box;
+}
+.redact-studio * {
+	box-sizing: border-box;
+}
+.redact-studio button,
+.redact-studio input,
+.redact-studio select {
+	font: inherit;
+}
+.redact-studio button {
+	cursor: pointer;
+	border: 1px solid var(--rs-border);
+	border-radius: 7px;
+	background: #fffefa;
+	color: var(--rs-ink);
+	padding: 7px 10px;
+	transition: background 0.15s;
+}
+.redact-studio button:hover:not(:disabled) {
+	background: #ecf2e9;
+}
+.redact-studio button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+.redact-studio :focus-visible {
+	outline: 3px solid #75b896;
+	outline-offset: 3px;
+}
+.rs-heading {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 24px 24px 18px;
+}
+.rs-heading h2 {
+	font-size: 23px;
+	letter-spacing: -0.8px;
+	font-weight: 650;
+	margin: 5px 0 0;
+	display: flex;
+	align-items: center;
+	gap: 9px;
+}
+.rs-dot {
+	width: 7px;
+	height: 7px;
+	background: #45a16c;
+	border-radius: 50%;
+}
+.rs-eyebrow {
+	font-size: 10px;
+	letter-spacing: 1.6px;
+	font-weight: 700;
+	color: var(--rs-muted);
+}
+.rs-local {
+	font-size: 11px;
+	background: #edf4e7;
+	color: #366846;
+	padding: 4px 9px;
+	border-radius: 30px;
+}
+.rs-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 0 24px 18px;
+	border-bottom: 1px solid var(--rs-border);
+}
+.rs-toolbar button {
+	font-size: 12px;
+}
+.rs-scenario {
+	padding: 20px 24px;
+	border-bottom: 1px solid var(--rs-border);
+}
+.redact-studio label {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	font-size: 11px;
+	color: var(--rs-muted);
+	font-weight: 600;
+	min-width: 0;
+}
+.redact-studio input,
+.redact-studio select {
+	width: 100%;
+	min-width: 0;
+	padding: 9px 10px;
+	border: 1px solid #d5dfd6;
+	border-radius: 6px;
+	color: var(--rs-ink);
+	background: white;
+	font-size: 13px;
+	font-weight: 400;
+}
+.rs-columns {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin: 12px 0;
+}
+.rs-section-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 18px 24px 10px;
+	gap: 12px;
+}
+.rs-section-title h3 {
+	font-size: 12px;
+	margin: 0;
+}
+.rs-section-title h3 span {
+	font-weight: 400;
+	color: var(--rs-muted);
+	padding-left: 8px;
+}
+.rs-section-title button {
+	font-size: 11px;
+	border: 0;
+}
+.rs-fields {
+	padding: 0 12px;
+	max-height: 235px;
+	overflow: auto;
+}
+.redact-studio .rs-field {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border: 1px solid transparent;
+	width: 100%;
+	text-align: left;
+	padding: 10px 12px;
+	border-radius: 8px;
+	gap: 10px;
+}
+.rs-field strong {
+	display: block;
+	font-size: 12px;
+	font-weight: 550;
+}
+.rs-field small {
+	font:
+		10px ui-monospace,
+		monospace;
+	color: var(--rs-muted);
+}
+.redact-studio .rs-active {
+	background: #edf3e9;
+	border-color: #cdddc8;
+}
+.rs-tag {
+	border: 1px solid #d9e4d5;
+	border-radius: 4px;
+	padding: 2px 5px;
+	font-size: 10px;
+	color: #5c755f;
+}
+.redact-studio .rs-add {
+	margin: 10px 24px 18px;
+	font-size: 12px;
+	border-style: dashed;
+}
+.rs-editor {
+	margin: 0 24px 20px;
+	border: 0;
+	padding: 0;
+	min-width: 0;
+}
+.rs-editor legend {
+	padding-top: 4px;
+	font-size: 13px;
+	font-weight: 600;
+}
+.rs-help {
+	font-size: 11px;
+	color: var(--rs-muted);
+	line-height: 1.6;
+}
+.rs-section-title + .rs-help {
+	padding: 0 24px;
+}
+.redact-studio .rs-checkbox {
+	flex-direction: row;
+	align-items: center;
+	margin-top: 10px;
+	font-size: 12px;
+}
+.rs-checkbox input {
+	width: 14px;
+	height: 14px;
+	accent-color: var(--rs-accent);
+}
+.rs-sample {
+	border: 1px solid var(--rs-border);
+	background: #f8f9f2;
+	border-radius: 8px;
+	padding: 12px;
+	margin: 15px 0;
+}
+.rs-sample span {
+	font-size: 9px;
+	letter-spacing: 1px;
+	display: block;
+	color: var(--rs-muted);
+}
+.rs-sample strong {
+	display: block;
+	font-size: 14px;
+	font-weight: 500;
+	margin-top: 5px;
+	overflow-wrap: anywhere;
+}
+.redact-studio .rs-delete {
+	font-size: 11px;
+	color: #975846;
+	border: 0;
+	padding-left: 0;
+}
+.rs-errors {
+	margin: 10px 24px;
+	color: #9b3327;
+	font-size: 12px;
+}
+.rs-preflight {
+	background: #f1f4eb;
+	padding: 20px 24px;
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	align-items: center;
+	border-top: 1px solid var(--rs-border);
+}
+.rs-preflight h3 {
+	margin: 4px 0 0;
+	font-size: 16px;
+}
+.redact-studio .rs-primary {
+	background: #235d40;
+	color: white;
+	border-color: #235d40;
+	font-size: 12px;
+	padding: 10px 13px;
+}
+.redact-studio .rs-primary:hover:not(:disabled) {
+	background: #174c30;
+}
+.rs-report {
+	padding: 18px 24px;
+	background: #f8faf4;
+	font-size: 12px;
+}
+.rs-report ul {
+	list-style: none;
+	padding: 0;
+}
+.rs-report li {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 6px 0;
+	border-bottom: 1px solid var(--rs-border);
+}
+.rs-report li span:last-child {
+	color: var(--rs-muted);
+	font-size: 11px;
+}
+.rs-status {
+	font-size: 11px;
+	padding: 0 24px;
+	color: var(--rs-muted);
+}
+.rs-footer {
+	padding: 8px 24px 16px;
+	border-top: 1px solid var(--rs-border);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+.rs-footer button {
+	font-size: 10px;
+	padding: 5px;
+	border: 0;
+}
+.rs-footer p {
+	width: 100%;
+	font-size: 10px;
+	color: var(--rs-muted);
+	margin: 4px 0 0;
+}
+[data-redact-selected] {
+	outline: 2px solid #80b196;
+	outline-offset: 3px;
+	border-radius: 2px;
+}
+@media (max-width: 420px) {
+	.rs-heading,
+	.rs-scenario,
+	.rs-preflight {
+		padding: 18px;
+	}
+	.rs-toolbar {
+		padding: 0 18px 16px;
+	}
+	.rs-columns {
+		grid-template-columns: 1fr;
+	}
+	.rs-heading h2 {
+		font-size: 21px;
+	}
+	.rs-preflight {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.redact-studio button {
+		transition: none;
+	}
+}
+
+.rs-ready {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+}

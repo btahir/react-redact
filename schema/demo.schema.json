@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://react-redact.vercel.app/schema/demo.schema.json",
+  "title": "React Redact Demo Document",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "name",
+    "seed",
+    "referenceDate",
+    "fields"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "seed": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "referenceDate": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "fields": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "kind",
+          "behavior",
+          "required"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{0,79}$",
+            "not": {
+              "enum": [
+                "constructor",
+                "prototype",
+                "__proto__"
+              ]
+            }
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "kind": {
+            "enum": [
+              "name",
+              "email",
+              "company",
+              "phone",
+              "amount",
+              "date",
+              "id",
+              "ip",
+              "text"
+            ]
+          },
+          "behavior": {
+            "enum": [
+              "sample",
+              "mask",
+              "hide"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "replacement": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      }
+    }
+  }
+}

@@ -18,6 +18,7 @@ export interface RedactContextValue {
 	setEnabled: (value: boolean | ((prev: boolean) => boolean)) => void;
 	autoDetect?: false | BuiltInPatternName[];
 	customPatterns?: RegExp[];
+	registerPattern?: (regex: RegExp) => void;
 	/** Default custom renderer when <Redact mode="custom"> doesn't provide renderRedacted. */
 	customRender?: CustomRedactRender;
 	/** Default blur radius (px) for mode="blur"; overridable per <Redact>/<RedactAuto>. */

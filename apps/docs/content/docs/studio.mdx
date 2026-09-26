@@ -1,0 +1,37 @@
+---
+title: Redact Studio
+description: Visually prepare demo fields, edit scenarios, and export local policies without an account.
+---
+
+[Open the complete synthetic workspace](/studio).
+
+```tsx
+'use client';
+import { useRef, useState } from 'react';
+import { createDemoDocument } from 'react-redact/data';
+import { DemoProvider, DemoField } from 'react-redact/fields';
+import { RedactStudio } from 'react-redact/studio';
+import 'react-redact/studio.css';
+
+export function Demo() {
+  const [document, setDocument] = useState(createDemoDocument);
+  const rootRef = useRef<HTMLDivElement>(null);
+  return <>
+    <div ref={rootRef}><DemoProvider document={document}>
+      <DemoField id="customer.name" />
+      <DemoField id="customer.email" />
+      <DemoField id="customer.company" />
+    </DemoProvider></div>
+    <RedactStudio document={document} onChange={setDocument}
+      rootRef={rootRef} storageKey="demo-v1" />
+  </>;
+}
+```
+
+Select a field from the list or use **Pick a field** in your preview. Escape cancels picking. Edit the kind, behavior, required flag, and optional invented replacement. A semantic ID connects your field to the policy; changing it also requires changing the app's declared ID.
+
+The preview keeps the last valid document while you fix invalid input. Undo/redo holds up to 50 document states. JSON imports are capped at 256 KB and validated. Exports contain the policy, never automatically captured DOM content.
+
+`storageKey` opts into localStorage. On opening, existing work is preserved and offered through **Load saved draft**. Author edits save automatically; **Clear saved draft** removes persisted work without destroying the open document. If storage is unavailable, the editor remains usable and tells you to export JSON instead.
+
+Keep the editor in an intentional development/demo environment. It edits the owned app containing it; it cannot inspect arbitrary third-party websites through cross-origin frames. No account, cloud sync, or telemetry is included.

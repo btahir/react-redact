@@ -129,11 +129,11 @@ export function Hero() {
 				>
 					<div className="inline-flex items-center gap-2.5 rounded-full border border-fd-border bg-fd-card/80 backdrop-blur-sm px-5 py-2 text-[13px] tracking-wide text-fd-muted-foreground font-[family-name:var(--font-mono)]">
 						<span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-						v0.1.0
+						Open source
 						<span className="text-fd-border">|</span>
 						zero dependencies
 						<span className="text-fd-border">|</span>
-						3.3 kB
+						MIT
 					</div>
 				</div>
 

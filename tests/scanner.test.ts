@@ -87,3 +87,12 @@ describe("scanner", () => {
 		expect(() => cancelScheduledScan(root)).not.toThrow();
 	});
 });
+
+it("terminates empty Unicode matches on surrogate pairs without mutating text", () => {
+	const root = document.createElement("div");
+	root.textContent = "😀 keep this";
+	scanRoot(root, { patternNames: [], customPatterns: [/(?:)/gu] }, () =>
+		document.createElement("span"),
+	);
+	expect(root.textContent).toBe("😀 keep this");
+});

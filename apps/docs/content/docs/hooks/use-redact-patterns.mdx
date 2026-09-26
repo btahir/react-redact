@@ -28,3 +28,5 @@ function PatternConfig() {
 | `addPattern` | `(regex, name) => PatternConfig` | Create a custom pattern config (does not mutate provider state) |
 
 When the provider has `autoDetect={false}` or no provider, `patternNames` and `patterns` are empty.
+
+Registered patterns now belong to the provider and are inherited by `RedactAuto` unless it supplies an explicit override. Register patterns in an effect or event, not while rendering. Duplicate regex source/flags are deduplicated.

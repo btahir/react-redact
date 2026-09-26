@@ -20,15 +20,15 @@ function getMetadataBase(): URL {
 	const raw =
 		process.env.NEXT_PUBLIC_SITE_URL ??
 		process.env.VERCEL_PROJECT_PRODUCTION_URL ??
-		"http://localhost:3001";
+		"https://react-redact.vercel.app";
 	const normalized = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
 	return new URL(normalized);
 }
 
 export const metadata: Metadata = {
-	title: "react-redact",
+	title: { default: "react-redact — Local React demo toolkit", template: "%s | react-redact" },
 	description:
-		"One keyboard shortcut to make your entire app demo-safe. Visually redact PII with blur, mask, or replace.",
+		"Consistent synthetic data, a visual field editor, and local demo checks for React.",
 	metadataBase: getMetadataBase(),
 	icons: {
 		icon: "/favicon.ico",
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
 	},
 	openGraph: {
 		title: "react-redact",
-		description: "One keyboard shortcut to make your entire app demo-safe.",
-		images: ["/og-image.png"],
+		description: "A local demo toolkit for React. Synthetic data, visual policies, and honest boundaries.",
+		images: ["/opengraph-image"],
 	},
 };
 

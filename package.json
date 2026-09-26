@@ -1,14 +1,14 @@
 {
 	"name": "react-redact",
-	"version": "0.3.0",
-	"description": "One keyboard shortcut to make your entire app demo-safe",
+	"version": "0.4.0",
+	"description": "Local demo data, visual field policies, and a small React redaction toolkit.",
 	"author": "Bilal Tahir",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/btahir/react-redact.git"
+		"url": "git+https://github.com/btahir/react-redact.git"
 	},
-	"homepage": "https://github.com/btahir/react-redact",
+	"homepage": "https://react-redact.vercel.app",
 	"bugs": {
 		"url": "https://github.com/btahir/react-redact/issues"
 	},
@@ -25,14 +25,74 @@
 			}
 		},
 		"./styles.css": "./dist/styles/redact.css",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./data": {
+			"import": {
+				"types": "./dist/data.d.ts",
+				"default": "./dist/data.js"
+			},
+			"require": {
+				"types": "./dist/data.d.cts",
+				"default": "./dist/data.cjs"
+			}
+		},
+		"./fields": {
+			"import": {
+				"types": "./dist/fields.d.ts",
+				"default": "./dist/fields.js"
+			},
+			"require": {
+				"types": "./dist/fields.d.cts",
+				"default": "./dist/fields.cjs"
+			}
+		},
+		"./studio": {
+			"import": {
+				"types": "./dist/studio.d.ts",
+				"default": "./dist/studio.js"
+			},
+			"require": {
+				"types": "./dist/studio.d.cts",
+				"default": "./dist/studio.cjs"
+			}
+		},
+		"./diagnostics": {
+			"import": {
+				"types": "./dist/diagnostics.d.ts",
+				"default": "./dist/diagnostics.js"
+			},
+			"require": {
+				"types": "./dist/diagnostics.d.cts",
+				"default": "./dist/diagnostics.cjs"
+			}
+		},
+		"./studio.css": "./dist/styles/studio.css",
+		"./schema.json": "./schema/demo.schema.json",
+		"./playwright": {
+			"import": {
+				"types": "./scripts/playwright.d.ts",
+				"default": "./scripts/playwright.mjs"
+			},
+			"require": {
+				"types": "./scripts/playwright.d.cts",
+				"default": "./scripts/playwright.cjs"
+			}
+		}
 	},
 	"main": "./dist/index.cjs",
 	"types": "./dist/index.d.ts",
 	"files": [
 		"dist",
+		"scripts/cli.mjs",
+		"scripts/playwright.mjs",
+		"scripts/playwright.d.ts",
+		"schema",
+		"skills",
 		"README.md",
-		"LICENSE"
+		"CHANGELOG.md",
+		"LICENSE",
+		"scripts/playwright.cjs",
+		"scripts/playwright.d.cts"
 	],
 	"sideEffects": [
 		"*.css"
@@ -47,7 +107,10 @@
 		"demo-mode",
 		"screenshare",
 		"sensitive-data",
-		"gdpr"
+		"synthetic-data",
+		"demo-data",
+		"visual-editor",
+		"developer-tools"
 	],
 	"peerDependencies": {
 		"react": ">=18.0.0",
@@ -58,6 +121,7 @@
 		"@biomejs/biome": "^2.3.0",
 		"@changesets/changelog-github": "^0.7.0",
 		"@changesets/cli": "^2.27.0",
+		"@playwright/test": "^1.63.0",
 		"@size-limit/preset-small-lib": "^11.0.0",
 		"@testing-library/jest-dom": "^6.0.0",
 		"@testing-library/react": "^16.0.0",
@@ -87,7 +151,7 @@
 		"test:coverage": "vitest run --coverage",
 		"check": "biome check .",
 		"check:fix": "biome check --fix .",
-		"lint:pkg": "publint && attw --pack --entrypoints .",
+		"lint:pkg": "publint && attw --pack --profile node16 --exclude-entrypoints ./styles.css ./studio.css",
 		"size": "size-limit",
 		"docs": "pnpm --filter react-redact-docs dev",
 		"video": "pnpm --filter react-redact-video studio",
@@ -95,6 +159,20 @@
 		"prepublishOnly": "pnpm run build",
 		"changeset": "changeset",
 		"version": "changeset version",
-		"release": "pnpm run build && changeset publish"
+		"release": "pnpm run build && changeset publish",
+		"typecheck": "tsc --noEmit",
+		"validate": "pnpm build && pnpm typecheck && pnpm test:run && pnpm lint:pkg",
+		"test:e2e": "playwright test",
+		"test:package": "node scripts/test-package.mjs"
+	},
+	"bin": {
+		"redact": "./scripts/cli.mjs"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"funding": {
+		"type": "custom",
+		"url": "https://react-tourlight.vercel.app/support"
 	}
 }

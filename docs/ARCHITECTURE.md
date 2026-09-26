@@ -1,6 +1,6 @@
 # Architecture and contracts
 
-This source checkout prepares the next minor release. It is not evidence that npm or the production site has been updated.
+This source checkout is version 0.4.0. It is not evidence that npm or the production site has been updated.
 
 ## Three layers
 
@@ -32,4 +32,4 @@ Preflight lists common unsupported surfaces and heuristic unregistered text cand
 
 The core never imports Studio. Five dual ESM/CommonJS bundles allow optional tooling to stay outside runtime consumers. React entries (index, fields, studio) receive `use client` after building; data and diagnostics remain server-callable. Both CSS exports are side effects. The Playwright helper has ESM and CommonJS entry points and structural types, requiring no Playwright runtime dependency of its own. The local CLI imports only built data code.
 
-A minor Changeset prepares release notes/versioning; no publish or deployment occurs here. `enabled` is controlled when supplied; `defaultEnabled` preserves an uncontrolled initial setting. This migration is documented. All features remain MIT. Shared maintainer support is voluntary and uses the existing Tourlight support page; React Maintainer Support offers shared one-time and recurring contributions. No automated GitHub workflow is added.
+The minor Changeset has been applied for version 0.4.0, with dependency release notes for the private docs and Vite consumers; no publish or deployment occurs here. `enabled` is controlled when supplied; `defaultEnabled` preserves an uncontrolled initial setting. This migration is documented. All features remain MIT. Shared maintainer support is voluntary and uses the existing Tourlight support page; React Maintainer Support offers shared one-time and recurring contributions. No automated GitHub workflow is added.

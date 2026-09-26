@@ -1,8 +1,13 @@
 # react-redact
 
-## Unreleased (minor release prepared)
+## 0.4.0
 
-- Add versioned synthetic scenarios, render-time registered fields, an optional visual Studio, bounded preflight, local CLI and Playwright helpers.
+### Minor Changes
+
+- 4284e04: Add deterministic synthetic scenarios, explicit render-time demo fields, an optional visual Studio, portable policy validation/schema, local CLI, bounded diagnostics, and a Playwright helper. Add a synthetic Next.js workspace, standalone Vite example, and updated task-oriented documentation.
+
+  Correct the automatic scanner's post-render privacy contract; keep all restoration values outside HTML, guard empty regex matches, inherit provider patterns, and provide accessible hidden-field labels. Controlled enabled state now remains authoritative; use defaultEnabled for an initially active uncontrolled provider.
+
 - Preserve Studio policies across demo routes; support accessible field editing, undo/redo, explicit draft recovery and portable JSON.
 - Remove DOM-stored originals from legacy automatic redaction, register custom patterns coherently, stop zero-length regex loops and clean up screen-share listeners.
 - Correct the historical automatic-redaction security claim below: automatic scanning occurs **after rendering**, including in `secure` mode. Original text can be present in SSR HTML and new DOM before scanning. Manual replacement and synthetic render-time fields have a different contract; none removes originals from application memory or network responses.

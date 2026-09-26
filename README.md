@@ -4,7 +4,7 @@
 
 [Live demo & Studio](https://react-redact.vercel.app) · [Documentation](https://react-redact.vercel.app/docs) · [Security boundaries](https://react-redact.vercel.app/docs/security) · [GitHub](https://github.com/btahir/react-redact)
 
-> The scenario, Studio, and preflight APIs described here are part of the next minor release in this branch. Use this checkout until that version is published. Existing visual APIs remain available in 0.3.0.
+> Scenario, Studio, and preflight APIs require react-redact 0.4.0 or later. Until 0.4.0 is published to npm, use this source checkout.
 
 ## Choose your workflow
 

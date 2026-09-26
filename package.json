@@ -1,6 +1,6 @@
 {
 	"name": "react-redact",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Local demo data, visual field policies, and a small React redaction toolkit.",
 	"author": "Bilal Tahir",
 	"license": "MIT",

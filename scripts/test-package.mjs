@@ -14,12 +14,15 @@ try {
   run('pnpm', ['pack', '--pack-destination', temporary], root);
   const tarball = readdirSync(temporary).find(file => file.endsWith('.tgz'));
   assert(tarball);
+  const expectedVersion = JSON.parse(readFileSync(join(root,'package.json'),'utf8')).version;
+  assert.equal(tarball, `react-redact-${expectedVersion}.tgz`);
   const files = run('tar', ['-tzf', join(temporary, tarball)]);
   for (const file of ['README.md','LICENSE','CHANGELOG.md','schema/demo.schema.json','skills/react-redact/SKILL.md','scripts/cli.mjs','scripts/playwright.mjs','dist/styles/studio.css','dist/studio.js','dist/data.js']) assert(files.includes(`package/${file}`), `Missing ${file}`);
   assert(!files.includes('node_modules')); assert(!files.includes('.env'));
   writeFileSync(join(temporary, 'package.json'), JSON.stringify({name:'packed-redact-consumer',version:'1.0.0',private:true,type:'module'}));
   run('npm', ['install','--ignore-scripts','--no-audit','--no-fund','--package-lock=false',join(temporary,tarball),'react@19','react-dom@19','next@15']);
   const installed = join(temporary,'node_modules/react-redact');
+  assert.equal(JSON.parse(readFileSync(join(installed,'package.json'),'utf8')).version, expectedVersion);
   assert.equal(readFileSync(join(installed,'README.md'),'utf8'),readFileSync(join(root,'README.md'),'utf8'));
   for(const entry of ['index','fields','studio']) assert(readFileSync(join(installed,`dist/${entry}.js`),'utf8').startsWith('"use client"'));
   for(const entry of ['data','diagnostics']) {const source=readFileSync(join(installed,`dist/${entry}.js`),'utf8');assert(!source.startsWith('"use client"'));assert(!/from ["']react/.test(source));}

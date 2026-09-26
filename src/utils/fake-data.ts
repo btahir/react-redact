@@ -34,7 +34,7 @@ const LAST = [
 	"Public",
 	"Anon",
 ];
-const DOMAINS = ["example.com", "demo.com", "test.com", "sample.org", "placeholder.dev"];
+const DOMAINS = ["example.com", "example.org", "example.net"];
 
 export function fakeEmail(original: string): string {
 	const seed = hashString(original);
@@ -46,9 +46,9 @@ export function fakeEmail(original: string): string {
 export function fakePhone(original: string): string {
 	const seed = hashString(original);
 	const a = seeded(seed, 200, 999);
-	const b = seeded(seed + 1, 200, 999);
-	const c = seeded(seed + 2, 1000, 9999);
-	return `(${a}) ${b}-${c}`;
+	const b = 555;
+	const c = seeded(seed + 2, 100, 199);
+	return `(${a}) ${b}-${String(c).padStart(4, "0")}`;
 }
 
 export function fakeName(original: string): string {
@@ -61,16 +61,12 @@ export function fakeIp(original: string): string {
 	if (original.includes(":")) {
 		return "2001:db8::1";
 	}
-	const a = seeded(seed, 10, 223);
-	const b = seeded(seed + 1, 0, 255);
-	const c = seeded(seed + 2, 0, 255);
-	const d = seeded(seed + 3, 1, 254);
-	return `${a}.${b}.${c}.${d}`;
+	return `192.0.2.${seeded(seed, 1, 254)}`;
 }
 
 export function fakeSsn(original: string): string {
 	const seed = hashString(original);
-	const a = seeded(seed, 100, 899);
+	const a = 900;
 	const b = seeded(seed + 1, 10, 99);
 	const c = seeded(seed + 2, 1000, 9999);
 	return `${a}-${b}-${c}`;

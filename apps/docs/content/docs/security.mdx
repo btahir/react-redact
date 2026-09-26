@@ -1,0 +1,29 @@
+---
+title: Demo privacy boundaries
+description: Understand visual concealment, render-time replacement, and synthetic-only data before presenting.
+---
+
+## Three different boundaries
+
+| Workflow | What happens | What remains outside its scope |
+| --- | --- | --- |
+| Blur | CSS changes the appearance of original content | DOM text, source data, network, accessibility/focus descendants |
+| Manual mask/replace/secure | The component renders substitute text while enabled | Original props/memory, upstream fetches, RSC serialization |
+| Automatic scanning | A client effect and mutation observer replace recognized text | Server HTML, newly inserted content before a scan, attributes, inputs, media, other roots |
+| Synthetic scenarios | Explicitly declared fields generate invented values before rendering | Other data your application fetches or passes through; authored values you put in the policy |
+
+The existing `secure` mode name is retained for compatibility. It is **not a security product**. Automatic scanning cannot promise that the original never entered the DOM. Every automatic mode now stores restoration values in a WeakMap, rather than HTML attributes; blur still has the original text node.
+
+## A strong public-demo setup
+
+Use a separate demo route with generated records, demo-only entity IDs, and no production API calls. In Next.js, never send private values through a Server Component/client boundary merely to hide them in a client component: their serialized payload can still contain them. The live Studio workspace uses only generated samples, including its API endpoint.
+
+Use reserved `example.com` addresses and documentation IP ranges. Deterministic aliases are not irreversible anonymization. Policies can contain user-authored replacement text; review it before sharing a JSON export or storing it in a repository.
+
+## Coverage is bounded
+
+Preflight checks only its supplied root in the current UI state. A clean report means configured fields were present and prepared. It cannot certify absence of all sensitive information. Images, canvas, video, input values, cross-origin frames, shadow trees, browser chrome, network responses, and unvisited routes need separate attention. Heuristic candidates may be synthetic values or false positives.
+
+## Screen sharing
+
+The optional watcher detects calls to `getDisplayMedia` from the same page only. It does not see Zoom desktop sharing, another browser tab, or the OS share picker. Turn on your intended demo state before starting a presentation. Do not rely on a capture-start callback to protect the first frame.

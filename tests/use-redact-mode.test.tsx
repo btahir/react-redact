@@ -28,7 +28,7 @@ describe("useRedactMode", () => {
 
 	it("disable() sets redacted to false", () => {
 		const { result } = renderHook(() => useRedactMode(), {
-			wrapper: ({ children }) => <RedactProvider enabled>{children}</RedactProvider>,
+			wrapper: ({ children }) => <RedactProvider defaultEnabled>{children}</RedactProvider>,
 		});
 		act(() => result.current.disable());
 		expect(result.current.isRedacted).toBe(false);

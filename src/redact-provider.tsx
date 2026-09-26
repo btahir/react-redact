@@ -24,6 +24,8 @@ export interface RedactProviderProps {
 	 *   you own the value, feed those requests back via `onEnabledChange` to keep your state in sync.
 	 */
 	enabled?: boolean;
+	/** Initial state for an uncontrolled provider. */
+	defaultEnabled?: boolean;
 	/**
 	 * Called whenever redaction is toggled by an internal trigger — the keyboard shortcut or
 	 * `useRedactMode().enable/disable/toggle`. Not called when `enabled` changes purely because
@@ -61,7 +63,8 @@ export function RedactProvider({
 	children,
 	mode = "blur",
 	shortcut = "mod+shift+x",
-	enabled: initialEnabled = false,
+	enabled: controlledEnabled,
+	defaultEnabled = false,
 	onEnabledChange,
 	autoDetect = false,
 	customPatterns,
@@ -70,26 +73,35 @@ export function RedactProvider({
 	maskChar = DEFAULT_MASK_CHAR,
 	autoRedactOnScreenShare = false,
 }: RedactProviderProps): ReactElement {
-	const [enabled, setEnabledState] = useState(initialEnabled);
+	const [internalEnabled, setEnabledState] = useState(defaultEnabled);
+	const enabled = controlledEnabled ?? internalEnabled;
+	const enabledRef = useRef(enabled);
+	enabledRef.current = enabled;
 	const [isScreenSharing, setIsScreenSharing] = useState(false);
-
-	// Sync when parent controls enabled via prop (controlled mode). This does not
-	// invoke onEnabledChange — that callback is reserved for internally-driven changes.
-	useEffect(() => {
-		setEnabledState(initialEnabled);
-	}, [initialEnabled]);
-
-	// Wrapped setter shared by the keyboard shortcut, useRedactMode(), and the screen-share
-	// watcher; notifies onEnabledChange for every internally-driven change (not the prop-sync above).
+	const [registeredPatterns, setRegisteredPatterns] = useState<RegExp[]>([]);
+	const registerPattern = useCallback((regex: RegExp) => {
+		setRegisteredPatterns((previous) =>
+			previous.some((item) => item.source === regex.source && item.flags === regex.flags)
+				? previous
+				: [...previous, regex],
+		);
+	}, []);
+	const combinedPatterns = useMemo(
+		() => [...(customPatterns ?? []), ...registeredPatterns],
+		[customPatterns, registeredPatterns],
+	);
 	const setEnabled = useCallback(
-		(value: boolean | ((prev: boolean) => boolean)) => {
-			setEnabledState((prev) => {
-				const next = typeof value === "function" ? (value as (p: boolean) => boolean)(prev) : value;
-				if (next !== prev) onEnabledChange?.(next);
-				return next;
-			});
+		(value: boolean | ((previous: boolean) => boolean)) => {
+			const previous = enabledRef.current;
+			const next = typeof value === "function" ? value(previous) : value;
+			if (next === previous) return;
+			if (controlledEnabled === undefined) {
+				enabledRef.current = next;
+				setEnabledState(next);
+			}
+			onEnabledChange?.(next);
 		},
-		[onEnabledChange],
+		[controlledEnabled, onEnabledChange],
 	);
 
 	useEffect(() => {
@@ -97,14 +109,6 @@ export function RedactProvider({
 		const remove = addShortcutListener(shortcut, () => setEnabled((e) => !e));
 		return remove;
 	}, [shortcut, setEnabled]);
-
-	// Mirrors `enabled` synchronously so the screen-share watcher's onStart callback (below) can
-	// read "the state right before this share began" without depending on `enabled` in a way that
-	// would tear down and re-patch getDisplayMedia every time redaction is toggled.
-	const enabledRef = useRef(enabled);
-	useEffect(() => {
-		enabledRef.current = enabled;
-	}, [enabled]);
 
 	// Captured once per (idle -> sharing) transition; restored on the matching (sharing -> idle)
 	// transition so a manual enable before sharing "wins" and stays on after the share ends.
@@ -152,7 +156,8 @@ export function RedactProvider({
 			mode,
 			setEnabled,
 			autoDetect: autoDetect || undefined,
-			customPatterns,
+			customPatterns: combinedPatterns,
+			registerPattern,
 			customRender,
 			blurRadius,
 			maskChar,
@@ -163,7 +168,8 @@ export function RedactProvider({
 			mode,
 			setEnabled,
 			autoDetect,
-			customPatterns,
+			combinedPatterns,
+			registerPattern,
 			customRender,
 			blurRadius,
 			maskChar,

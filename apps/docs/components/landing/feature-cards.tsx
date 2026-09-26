@@ -8,7 +8,7 @@ const features = [
 	},
 	{
 		number: "02",
-		title: "Three Modes",
+		title: "Visual Modes",
 		description:
 			"Blur hides instantly. Mask replaces with bullets. Replace generates deterministic fake data.",
 		detail: "blur | mask | replace",
@@ -24,8 +24,8 @@ const features = [
 		number: "04",
 		title: "Zero Dependencies",
 		description:
-			"React is the only peer dep. ESM + CJS dual output, tree-shakeable, 3.3 kB gzipped.",
-		detail: "3.3 kB",
+			"React is the only peer dep. ESM + CJS dual output, tree-shakeable, optional entry points.",
+		detail: "MIT",
 	},
 ];
 

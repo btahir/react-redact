@@ -1,5 +1,14 @@
 # react-redact
 
+## Unreleased (minor release prepared)
+
+- Add versioned synthetic scenarios, render-time registered fields, an optional visual Studio, bounded preflight, local CLI and Playwright helpers.
+- Preserve Studio policies across demo routes; support accessible field editing, undo/redo, explicit draft recovery and portable JSON.
+- Remove DOM-stored originals from legacy automatic redaction, register custom patterns coherently, stop zero-length regex loops and clean up screen-share listeners.
+- Correct the historical automatic-redaction security claim below: automatic scanning occurs **after rendering**, including in `secure` mode. Original text can be present in SSR HTML and new DOM before scanning. Manual replacement and synthetic render-time fields have a different contract; none removes originals from application memory or network responses.
+- `enabled` is now authoritative when supplied. Use `defaultEnabled` for uncontrolled initial state, or update `enabled` from `onEnabledChange`.
+- Add runnable Next/Vite examples, cross-browser and packed-consumer verification, revised documentation and voluntary shared maintainer support.
+
 ## 0.3.0
 
 ### Minor Changes
@@ -16,10 +25,9 @@
     those. Fires `onEnabledChange` like any other internally-driven toggle, restores the original
     `getDisplayMedia` on unmount, and handles multiple concurrent streams and a cancelled share
     picker correctly. `useRedactMode()` now also returns `isScreenSharing`.
-  - **`mode="secure"` (for `<Redact>` and `<RedactAuto>`):** a new redaction mode that guarantees the
-    real value is never written to the DOM at all while enabled — no text node, no
-    `data-redact-original` attribute, nothing recoverable via devtools, "View Source", or a
-    DOM-scraping copy/OCR pass. Displays deterministic fake data when a pattern is recognized
+  - **`mode="secure"` (for `<Redact>` and `<RedactAuto>`):** a replacement mode. **Historical correction:** only manual `<Redact>` omits its
+    original children during enabled rendering; `<RedactAuto>` scans after rendering and does
+    expose originals in SSR and before scanning. Neither is a security boundary. Displays deterministic fake data when a pattern is recognized
     (mirrors `mode="replace"`), otherwise the configurable mask character. `<RedactAuto>` keeps the
     original text only in an in-memory `WeakMap` for restoration on disable, including through the
     `MutationObserver` rescan path.

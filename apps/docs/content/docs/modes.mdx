@@ -1,87 +1,30 @@
 ---
-title: Modes
-description: Blur, mask, and replace redaction styles.
+title: Visual modes
+description: Blur, mask, replace, secure compatibility mode, and custom rendering—with precise boundaries.
 ---
 
-# Modes
+## Blur
 
-Redaction can be shown in four ways (and a fifth custom option for full control).
-
-## Blur (default)
-
-Uses `filter: blur(6px)` so the original text is still in the DOM but unreadable. GPU-accelerated and fast. Best for quick demos.
-
-Set via `<RedactProvider mode="blur">` or `<Redact mode="blur">`.
+`mode="blur"` applies inline CSS to original text. It works without a stylesheet import. The original remains in the DOM. `blurRadius` defaults to 6 and can be overridden per component.
 
 ## Mask
 
-Replaces characters with bullets (•) and keeps the same visual width using `ch` units. Copy-paste safe (no real text in the redacted span). Good for forms and tables.
-
-```tsx
-<Redact mode="mask">555-123-4567</Redact>
-```
+`mode="mask"` shows bullets for a plain text child. `maskChar` changes the character. Manual mask does not render the original child while enabled, but application props and data remain unchanged. For a fixed-length mask that does not disclose original length, use a scenario rule with `behavior: 'mask'`.
 
 ## Replace
 
-Swaps content with deterministic fake data (or a custom string via the `replacement` prop). Same input always produces the same fake output, so toggling doesn’t flicker.
-
-```tsx
-<Redact mode="replace">user@company.com</Redact>
-<Redact mode="replace" replacement="Jane Smith">John Doe</Redact>
-```
-
-Fake data is generated from a hash of the original value for emails, phones, SSNs, IPs, and credit-card values.
-
-> Name detection is intentionally not built in for `RedactAuto` because generic name regex rules produce too many false positives. For names, use manual `<Redact>` wrapping (or provide targeted `customPatterns` for your own domain data).
+`mode="replace"` generates deterministic sample text. `<Redact replacement="Example person">` uses an authored value. Synthetic examples use reserved email/IP ranges; they are not anonymization.
 
 ## Secure
 
-Like replace — deterministic fake data when a pattern is recognized, otherwise the configurable
-mask character — but with a stronger DOM guarantee: **the real value is never written to the DOM
-while redaction is enabled.** No text node, no `data-redact-original` attribute, nothing a "View
-Source", devtools Elements-panel inspection, or DOM-scraping copy/OCR pass can recover.
-
-```tsx
-<RedactProvider mode="secure">
-  <RedactAuto patterns={['email', 'phone']}>
-    <CustomerDetails />
-  </RedactAuto>
-</RedactProvider>
-
-<Redact mode="secure">user@company.com</Redact>
-```
-
-`<RedactAuto>` keeps the original text only in an in-memory `WeakMap` keyed by the span element
-(not the DOM) so it can restore it once you disable redaction — including through the
-`MutationObserver`-driven rescan path when content changes while redaction stays on. `<Redact>`
-simply never renders `children` while enabled; the real value only ever exists as that render's
-`children` prop.
-
-Set via `<RedactProvider mode="secure">` or `<Redact mode="secure">`. Reach for it whenever the
-audience might poke at devtools — public demos, recordings that get uploaded somewhere, or any
-screenshare where you can't fully vouch for who's watching. See the
-[Security model](/docs#security-model) in the README for exactly what secure mode does and
-doesn't cover — it closes the DOM-inspection hole, not every possible way to see PII.
+`mode="secure"` remains a compatibility API with replacement behavior. For manual `Redact`, the original child is not rendered while enabled. **For `RedactAuto`, scanning still happens after rendering**: original server HTML and newly inserted text may be present before a scan. All automatic modes now keep restoration values in memory. See [the complete boundaries](/docs/security).
 
 ## Custom
 
-Use your own render function when redacted. Pass **`renderRedacted`** on `<Redact>` or **`customRender`** on `RedactProvider` (used when a `<Redact mode="custom">` doesn’t provide its own). Your component should render a wrapper with `data-redact` (and `aria-hidden`) so the global toggle still applies.
-
 ```tsx
-import { Redact, RedactProvider } from 'react-redact';
-
-// Per-component
-<Redact
-  mode="custom"
-  renderRedacted={({ text }) => (
-    <span data-redact aria-hidden style={{ color: 'red' }}>[{text}]</span>
-  )}
->
-  secret@email.com
+<Redact mode="custom" renderRedacted={() => <span data-redact>Demo customer</span>}>
+  {'someone@example.com'}
 </Redact>
-
-// Default for all mode="custom" via provider
-<RedactProvider customRender={({ text }) => <span data-redact aria-hidden>REDACTED</span>}>
-  <Redact mode="custom">any text</Redact>
-</RedactProvider>
 ```
+
+The custom renderer owns its output and accessible semantics. It must not echo private inputs accidentally. A provider `customRender` is used when a component does not supply `renderRedacted`.

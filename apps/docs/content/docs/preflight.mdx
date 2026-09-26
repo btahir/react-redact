@@ -1,0 +1,46 @@
+---
+title: Preflight and screenshots
+description: Check declared demo fields and synthetic sentinels locally, with explicit coverage limits.
+---
+
+## Current-view diagnostics
+
+```ts
+import { inspectDemo, checkSentinels } from 'react-redact/diagnostics';
+const report = inspectDemo(document.querySelector('#demo')!, policy);
+const fixtureCheck = checkSentinels(document.querySelector('#demo')!, ['FAKE-PRIVATE-SENTINEL']);
+```
+
+Coverage includes the root element itself, required/optional fields, unknown target IDs, and unprepared field status. Repeated IDs are valid when the same field appears for multiple demo entities. Email/SSN candidates outside registered fields are hints, not exhaustive PII detection. Reports return metadata and sentinel indices instead of echoing private page values.
+
+`ready` means declared targets are covered in this root. Unsupported surfaces and heuristic candidates still need review. It is never a security certification.
+
+## Playwright
+
+```ts
+import { test, expect } from '@playwright/test';
+import { createDemoDocument } from 'react-redact/data';
+import { checkDemoPage } from 'react-redact/playwright';
+
+test('customer demo', async ({ page }) => {
+  await page.goto('/studio/overview');
+  const report = await checkDemoPage(page, createDemoDocument(), {
+    root: '[data-testid="demo-preview"]',
+    sentinels: ['FAKE-PRIVATE-SENTINEL'],
+  });
+  expect(report.passed).toBe(true);
+  await page.screenshot({ path: 'customer-demo.png' });
+});
+```
+
+The helper uses an existing page and performs no navigation or upload. It checks current text, attributes, and form values for invented sentinels. It does not check the clipboard, pixel content, network responses, browser chrome, or unvisited routes. Add explicit tests for every dialog and route you intend to record.
+
+## Local CLI
+
+```sh
+npx --no-install redact init demo.json
+npx --no-install redact validate demo.json
+npx --no-install redact fixtures demo.json 3
+```
+
+The commands work locally after installation. `init` refuses to overwrite a file. `fixtures` accepts a count from 1 to 1,000. Nothing is published or uploaded. Use the shipped agent skill for the same workflow.

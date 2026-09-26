@@ -9,3 +9,7 @@ coverage
 .next
 .source
 apps/video/out/
+playwright-report
+test-results
+
+.next-*

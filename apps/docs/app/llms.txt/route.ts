@@ -4,7 +4,7 @@ function getBaseUrl(): string {
 	const raw =
 		process.env.NEXT_PUBLIC_SITE_URL ??
 		process.env.VERCEL_PROJECT_PRODUCTION_URL ??
-		"http://localhost:3001";
+		"https://react-redact.vercel.app";
 	return raw.startsWith("http://") || raw.startsWith("https://")
 		? raw
 		: `https://${raw}`;
@@ -19,9 +19,9 @@ export function GET() {
 	const lines = [
 		"# react-redact",
 		"",
-		"> One keyboard shortcut to make your entire app demo-safe.",
+		"> Local React demo data, visual policy authoring, and bounded preflight checks.",
 		"",
-		"Visually redact PII with blur, mask, or replace. Drop in a provider, hit a shortcut, and every sensitive field in your React app is hidden — perfect for demos, screenshots, and screen shares.",
+		"Use explicit synthetic scenarios and render-time fields for public demos. Automatic DOM scanning is best-effort post-render concealment, never a security boundary. Optional Studio and CLI share a versioned policy.",
 		"",
 		"## Docs",
 		"",

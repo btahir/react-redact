@@ -1,26 +1,21 @@
-"use client";
-
-import { Hero } from "@/components/landing/hero";
-import { InstallCommand } from "@/components/landing/install-command";
-import { FeatureCards } from "@/components/landing/feature-cards";
-import { BeforeAfter } from "@/components/landing/before-after";
-import { CodeExample } from "@/components/landing/code-example";
-import { Footer } from "@/components/landing/footer";
-import { TourProvider } from "@/components/landing/tour/tour-provider";
-import { TourOverlay } from "@/components/landing/tour/tour-overlay";
-
+import Link from "next/link";
+import type { Metadata } from "next";
+import { createDemoDocument } from "react-redact/data";
+import { DemoWorkspace } from "@/components/studio/workspace";
+import styles from "./home.module.css";
+export const metadata: Metadata = { title: "react-redact — A better day to demo", description: "Prepare believable React demos with consistent synthetic data, a visual field editor, and local preflight checks. Free, open source, and yours to keep.", alternates: { canonical: "/" } };
 export default function Home() {
-	return (
-		<TourProvider>
-			<main className="min-h-screen">
-				<Hero />
-				<InstallCommand />
-				<FeatureCards />
-				<BeforeAfter />
-				<CodeExample />
-				<Footer />
-			</main>
-			<TourOverlay />
-		</TourProvider>
-	);
+  const policy = createDemoDocument();
+  return <div className={styles.home}>
+    <nav className={styles.nav} aria-label="Main navigation"><Link className={styles.logo} href="/"><span>r</span> react-redact</Link><div><Link href="/docs">Documentation</Link><a href="https://github.com/btahir/react-redact">GitHub ↗</a><Link className={styles.navButton} href="/studio">Open Studio</Link></div></nav>
+    <main>
+      <section className={styles.hero}><div className={styles.eyebrow}><span /> THE OPEN-SOURCE DEMO TOOLKIT FOR REACT</div><h1>A better day<br />to <em>demo.</em><span className={styles.star} aria-hidden="true">✳</span></h1><p>Believable sample data. A little visual polish.<br />Your real app, ready for its next conversation.</p><div className={styles.actions}><a className={styles.primary} href="#try-it">Make yourself at home <span>↘</span></a><Link href="/docs">Start with the code <span>→</span></Link></div><div className={styles.install}><code>npm install react-redact</code><span>MIT licensed · No account · Runs locally</span></div></section>
+      <section className={styles.studioSection} id="try-it"><div className={styles.sectionHeading}><div><span className={styles.eyebrow}>MEET YOUR NEW PRE-DEMO RITUAL</span><h2>Less setup. More show-and-tell.</h2></div><p>Change a seed. Pick a field. Try the customer dialog.<br />This is the actual editor, running on a synthetic workspace.</p></div><DemoWorkspace compact initialDocument={policy} /></section>
+      <section className={styles.story}><div><span className={styles.eyebrow}>SMALL LIBRARY. THOUGHTFUL WORKFLOW.</span><h2>Good demos start<br />with good data.</h2><p>Let your application tell the story. Keep the customers fictional, the details consistent, and the configuration in your own repository.</p><Link href="/docs/scenarios">Meet demo scenarios →</Link></div><ol><li><span>01</span><div><h3>Declare what matters.</h3><p>Give names, emails, and invoices explicit field IDs. Synthetic values are generated before they render—including on the server.</p></div></li><li><span>02</span><div><h3>Make it feel like your product.</h3><p>Adjust a scenario in Studio, preview the actual app, and export a small JSON policy. Your teammate and your coding agent use the same document.</p></div></li><li><span>03</span><div><h3>Do one last pass.</h3><p>Check declared fields and missing targets. Run local screenshot checks. Know which surfaces were checked and which need your attention.</p></div></li></ol></section>
+      <section className={styles.codeSection}><div><span className={styles.eyebrow}>A FEW LINES. A CALMER WORKFLOW.</span><h2>Fits your React app.<br />Stays out of its way.</h2><p>Use the tiny visual toolkit on its own, or bring in data, fields, and Studio through separate imports.</p><Link href="/docs/nextjs">Try the Next.js recipe →</Link></div><pre><code>{`import { createDemoDocument } from 'react-redact/data';\nimport { DemoProvider, DemoField } from 'react-redact/fields';\n\nconst demo = createDemoDocument();\n\n<DemoProvider document={demo}>\n  <DemoField id="customer.name" entity="demo-1" />\n  <DemoField id="customer.email" entity="demo-1" />\n</DemoProvider>`}</code></pre></section>
+      <section className={styles.boundary}><span>◌</span><div><h2>A demo toolkit, with honest boundaries.</h2><p>Visual blur is not data removal. Automatic scanning is best-effort and happens after rendering. For public demos, start with synthetic data—this workspace does. Preflight checks the current view; it cannot certify privacy or inspect network traffic.</p><Link href="/docs/security">Understand the boundaries →</Link></div></section>
+      <section className={styles.finalCta}><span className={styles.eyebrow}>YOURS TO BUILD ON</span><h2>Make something<br /><em>worth showing.</em></h2><Link className={styles.primary} href="/docs">Build your first demo <span>→</span></Link><p>Free and open source. Every field. Every feature.</p><a className={styles.supportLink} href="https://react-tourlight.vercel.app/support">Support this project ↗</a><p className={styles.supportNote}>One maintainer, four open-source tools: Tourlight, Kino, Clickmap, and Redact. Optional support helps keep them growing. One-time or monthly React Maintainer Support.</p></section>
+    </main><footer className={styles.footer}><Link className={styles.logo} href="/"><span>r</span> react-redact</Link><p>Thoughtfully made by <a href="https://github.com/btahir">Bilal Tahir</a>.</p><div><Link href="/docs">Docs</Link><a href="https://www.npmjs.com/package/react-redact">npm ↗</a><a href="https://github.com/btahir/react-redact/blob/main/LICENSE">MIT License</a></div></footer>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context':'https://schema.org', '@type':'SoftwareSourceCode', name:'react-redact', description:'Open-source React demo data and visual field authoring toolkit', codeRepository:'https://github.com/btahir/react-redact', license:'https://opensource.org/license/mit', programmingLanguage:'TypeScript', url:'https://react-redact.vercel.app' }).replace(/</g,'\\u003c') }} />
+  </div>;
 }

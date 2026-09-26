@@ -5,7 +5,7 @@ function getBaseUrl(): string {
 	const raw =
 		process.env.NEXT_PUBLIC_SITE_URL ??
 		process.env.VERCEL_PROJECT_PRODUCTION_URL ??
-		"http://localhost:3001";
+		"https://react-redact.vercel.app";
 	return raw.startsWith("http://") || raw.startsWith("https://")
 		? raw
 		: `https://${raw}`;
@@ -17,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
 	const docEntries: MetadataRoute.Sitemap = pages.map((page) => ({
 		url: `${BASE_URL}${page.url}`,
-		lastModified: new Date(),
+		lastModified: new Date("2026-09-25"),
 		changeFrequency: "weekly",
 		priority: page.url === "/docs" ? 0.9 : 0.7,
 	}));
@@ -25,10 +25,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
 	return [
 		{
 			url: BASE_URL,
-			lastModified: new Date(),
+			lastModified: new Date("2026-09-25"),
 			changeFrequency: "weekly",
 			priority: 1.0,
 		},
 		...docEntries,
+		...["overview", "customers", "invoices"].map(view => ({ url: `${BASE_URL}/studio/${view}`, lastModified: new Date("2026-09-25") })),
 	];
 }

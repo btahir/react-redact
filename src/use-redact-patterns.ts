@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 import { RedactContext } from "./context.js";
 import {
 	type BuiltInPatternName,
@@ -15,15 +15,24 @@ export interface UseRedactPatternsReturn {
 
 /**
  * Hook to read active auto-detect pattern names and extend with custom patterns.
- * Returns provider-level config only; RedactAuto uses its own patterns prop.
+ * Provider-level patterns are inherited by RedactAuto unless it supplies overrides.
  */
 export function useRedactPatterns(): UseRedactPatternsReturn {
 	const ctx = useContext(RedactContext);
 	const patternNames = ctx?.autoDetect ?? [];
 	const list = Array.isArray(patternNames) ? patternNames : [];
+	const registerPattern = ctx?.registerPattern;
+	const addPattern = useCallback(
+		(regex: RegExp, name: string): PatternConfig => {
+			const pattern = createPattern(regex, name);
+			registerPattern?.(pattern.regex);
+			return pattern;
+		},
+		[registerPattern],
+	);
 	return {
 		patternNames: list,
 		patterns: getPatterns(list),
-		addPattern: (regex: RegExp, name: string) => createPattern(regex, name),
+		addPattern,
 	};
 }

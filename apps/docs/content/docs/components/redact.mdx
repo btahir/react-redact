@@ -36,9 +36,9 @@ import { Redact } from 'react-redact';
 - **blur** — `filter: blur(<blurRadius>px)` (default `6`); original text remains in DOM.
 - **mask** — Repeated `maskChar` (default `•`) matching character length (`ch` units).
 - **replace** — Swap with `replacement` prop or deterministic fake data (when `children` is a string).
-- **secure** — Same display logic as replace, but with a stronger guarantee: `children` is never
+- **secure** — Compatibility name for replacement behavior: `children` is never
   rendered while enabled, so the real value never becomes a DOM text node. See
-  [Modes → Secure](/docs/modes#secure).
+  [privacy boundaries](/docs/security).
 - **custom** — Use `renderRedacted` (or provider `customRender`). Your node should have `data-redact` and `aria-hidden`.
 
 When redact mode is off, children render as-is with no wrapper.

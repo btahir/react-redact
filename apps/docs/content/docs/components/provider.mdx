@@ -32,6 +32,7 @@ import 'react-redact/styles.css'; // optional — see note below
 | `children` | `ReactNode` | — | App or subtree |
 | `mode` | `'blur' \| 'mask' \| 'replace' \| 'secure' \| 'custom'` | `'blur'` | Default redaction style |
 | `shortcut` | `string` | `'mod+shift+x'` | Keyboard shortcut; `mod` = ⌘/Ctrl |
+| `defaultEnabled` | `boolean` | `false` | Initial uncontrolled state; internal toggle owns later changes |
 | `enabled` | `boolean` | `false` | Initial (uncontrolled) or controlled redact state |
 | `onEnabledChange` | `(enabled: boolean) => void` | — | Called on internally-driven changes (shortcut, `useRedactMode()`, screen-share auto-toggle) — required for controlled usage |
 | `autoDetect` | `false \| BuiltInPatternName[]` | `false` | Pattern names for context (e.g. useRedactPatterns) |
@@ -60,3 +61,7 @@ your app's window/tab from Zoom's, Meet's, or the OS's own screen-share picker �
 entirely outside the page and no web API can observe them. Keep the keyboard shortcut (or a manual
 toggle) as your primary mechanism for that case; treat this prop as an automatic bonus for the
 in-app-recorder case, not a replacement.
+
+## Controlled state
+
+A supplied `enabled` value is authoritative. Hook/keyboard changes request `onEnabledChange`; the parent must accept them by updating its prop. Use `defaultEnabled` instead to initialize an uncontrolled provider. Provider custom patterns and `autoDetect` are inherited by `RedactAuto` unless locally overridden.

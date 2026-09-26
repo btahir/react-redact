@@ -57,7 +57,11 @@ function findMatches(
 		const r = new RegExp(re.source, flags);
 		let m = r.exec(text);
 		while (m !== null) {
-			add(m.index, m[0].length);
+			if (m[0].length === 0) {
+				// Empty matches are unsupported. Stop this pattern, including Unicode
+				// lookaheads on surrogate pairs where advancing one unit can loop.
+				break;
+			} else add(m.index, m[0].length);
 			m = r.exec(text);
 		}
 	}
@@ -122,7 +126,7 @@ export function scanRoot(
 	const pairs = getTextNodes(root);
 	for (const { node, text } of pairs) {
 		// Skip if already inside a redact span
-		let el: Node | null = node.parentElement;
+		let el: Element | null = node.parentElement;
 		while (el && el !== root) {
 			if (el.hasAttribute?.("data-redact")) break;
 			el = el.parentElement;

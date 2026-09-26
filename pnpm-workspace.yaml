@@ -1,6 +1,7 @@
 packages:
   - "."
   - "apps/*"
+  - "examples/*"
 allowBuilds:
   esbuild: false
   sharp: false

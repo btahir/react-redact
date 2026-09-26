@@ -18,7 +18,8 @@ describe("Redact", () => {
 		renderWithProvider(<Redact>secret@email.com</Redact>, true);
 		const span = document.querySelector("[data-redact]");
 		expect(span).toBeInTheDocument();
-		expect(span).toHaveAttribute("aria-hidden", "true");
+		expect(span).toHaveAttribute("aria-label", "Hidden demo field");
+		expect(span).toHaveAttribute("role", "img");
 		expect(span).toHaveClass("react-redact-blur");
 		expect(span?.textContent).toBe("secret@email.com");
 	});

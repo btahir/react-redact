@@ -84,7 +84,7 @@ export const tourSteps: TourStep[] = [
 		target: "hero-row-email",
 		title: "See the redaction up close",
 		description:
-			'This is a real <Redact> component in action. The original value "sarah.johnson@acme.corp" is visually hidden — the DOM never leaks it.',
+			'This is a real <Redact> component in action. The original value "sarah.johnson@acme.corp" is visually hidden — visual hiding does not remove source data.',
 		placement: "top",
 		padding: 4,
 		borderRadius: 0,
@@ -95,7 +95,7 @@ export const tourSteps: TourStep[] = [
 		target: "install-block",
 		title: "Ready to try it?",
 		description:
-			"Install with your favorite package manager. Zero dependencies, 3.3 kB gzipped, ESM + CJS.",
+			"Install with your favorite package manager. Zero dependencies, optional entry points, ESM + CJS.",
 		placement: "bottom",
 		padding: 8,
 		borderRadius: 12,

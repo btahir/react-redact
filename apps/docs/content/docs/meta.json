@@ -1,4 +1,21 @@
 {
   "title": "Documentation",
-  "pages": ["index", "---Components---", "components/redact", "components/redact-auto", "components/provider", "---Hooks---", "hooks/use-redact-mode", "hooks/use-redact-patterns", "---Guides---", "modes", "patterns", "recipes"]
+  "pages": [
+    "index",
+    "---Demo toolkit---",
+    "scenarios",
+    "studio",
+    "preflight",
+    "nextjs",
+    "security",
+    "---Visual toolkit---",
+    "components/redact",
+    "components/redact-auto",
+    "components/provider",
+    "hooks/use-redact-mode",
+    "hooks/use-redact-patterns",
+    "modes",
+    "patterns",
+    "recipes"
+  ]
 }

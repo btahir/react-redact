@@ -1,0 +1,44 @@
+---
+title: Next.js synthetic demo recipe
+description: Prepare demo values on the server and keep original customer records out of client payloads.
+---
+
+## Generate before the client boundary
+
+```tsx
+// app/demo/page.tsx — Server Component
+import { createDemoDocument, createDemoRecord } from 'react-redact/data';
+
+export default function DemoPage() {
+  const policy = createDemoDocument();
+  const customer = createDemoRecord(policy, 'demo-1');
+  return <main><h1>{customer['customer.name']}</h1>
+    <p>{customer['customer.email']}</p></main>;
+}
+```
+
+The data entry point is server-callable. `fields` and `studio` declare their client boundaries. Client components can still render their generated output during SSR.
+
+Do not pass real customer records from a Server Component into a redacting Client Component and call that private: the RSC serialization can contain the original props. A dedicated demo route should have no production fetches or credentials.
+
+## Synthetic API response
+
+```ts
+import { createDemoDocument, createDemoRecord } from 'react-redact/data';
+export function GET() {
+  return Response.json(createDemoRecord(createDemoDocument(), 'demo-1'));
+}
+```
+
+The repository's `/api/demo` endpoint demonstrates an asynchronous load. Its `/studio/overview`, `/studio/customers`, and `/studio/invoices` routes use the same generator and editor. A customer dialog preserves identity across views. All inputs are invented.
+
+## Self-host locally
+
+```sh
+pnpm install
+pnpm build
+pnpm --filter react-redact-docs build
+pnpm --filter react-redact-docs start
+```
+
+A normal Node deployment is enough. No application account, data service, or hosted billing backend is required for the demo toolkit. Website deployment and npm publishing are separate actions.

@@ -4,7 +4,7 @@
 
 [Live demo & Studio](https://react-redact.vercel.app) · [Documentation](https://react-redact.vercel.app/docs) · [Security boundaries](https://react-redact.vercel.app/docs/security) · [GitHub](https://github.com/btahir/react-redact)
 
-> Scenario, Studio, and preflight APIs require react-redact 0.4.0 or later. Until 0.4.0 is published to npm, use this source checkout.
+> Scenario, Studio, and preflight APIs require react-redact 0.4.0 or later.
 
 ## Choose your workflow
 
